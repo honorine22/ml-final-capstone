@@ -13,14 +13,13 @@ import {
   ExternalLink,
   FileImage,
   FlaskConical,
-  Gauge,
-  Image as ImageIcon,
   Layers3,
   Leaf,
   LineChart,
   Loader2,
   MapPin,
   PackageCheck,
+  PlayCircle,
   ShieldCheck,
   Upload,
   WifiOff,
@@ -163,9 +162,10 @@ const datasetSources = [
 ];
 
 const navItems = [
-  { label: "Assess", href: "#scan" },
-  { label: "Result", href: "#results" },
-  { label: "Datasets", href: "#data" },
+  { label: "Project", href: "#project" },
+  { label: "How it works", href: "#scan" },
+  { label: "Workflow", href: "#results" },
+  { label: "Demo", href: "#data" },
 ];
 
 const priorityRules: { label: string; tone: string }[] = [
@@ -196,9 +196,9 @@ function toneClasses(tone: Scenario["tone"]) {
   }
 
   return {
-    chip: "bg-warning/12 text-warning border-warning/25",
+    chip: "bg-warning/10 text-warning border-warning/25",
     bar: "bg-warning",
-    icon: "bg-warning/12 text-warning",
+    icon: "bg-warning/10 text-warning",
     panel: "border-warning/20 bg-warning/5",
   };
 }
@@ -257,14 +257,14 @@ export default function Home() {
       }
 
       const predicted =
-        apiResult.key ?? apiResult.fallback?.key ?? localVisual ?? "discolored";
+        apiResult.key ?? apiResult.fallback?.key ?? localVisual ?? "good";
 
       setSelected(predicted);
       setLastUpdated(
         response.ok ? "Assessment completed" : "Preview assessment completed"
       );
     } catch {
-      setSelected(localVisual ?? "discolored");
+      setSelected(localVisual ?? "good");
       setLastUpdated("Preview assessment completed");
     } finally {
       setIsAnalyzing(false);
@@ -272,30 +272,33 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen text-ink">
-      <section className="farm-hero relative overflow-hidden">
-        <header className="mx-auto flex max-w-7xl items-center justify-between px-5 pt-6 md:px-8">
-          <a href="#" className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/80 text-primary shadow-soft ring-1 ring-border backdrop-blur">
-              <Leaf className="h-5 w-5" />
-            </div>
+    <main className="min-h-screen bg-[#f6f8f4] text-ink">
+      {/* HERO */}
+      <section
+        id="project"
+        className="relative min-h-screen overflow-hidden bg-black text-white"
+      >
+        <img
+          src="/farmers-maize-harvest-background.jpg"
+          alt="Farmers harvesting maize"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
 
-            <div className="leading-tight">
-              <p className="font-display text-xl font-semibold text-ink">
-                MaizeGuard
-              </p>
-              <p className="text-xs font-semibold text-ink-soft">
-                Rwanda · Post-harvest quality check
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,9,7,0.88)_0%,rgba(5,10,8,0.78)_38%,rgba(7,10,8,0.48)_68%,rgba(7,10,8,0.3)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.32)_0%,rgba(0,0,0,0.08)_40%,rgba(0,0,0,0.66)_100%)]" />
+
+        <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-7 md:px-8">
+          <a href="#" className="flex items-center gap-2 text-lg font-semibold">
+            <span className="text-[#f3c84f]">MaizeGuard</span>
+            <span className="text-white">Rwanda</span>
           </a>
 
-          <nav className="hidden items-center gap-1 rounded-full border border-border bg-white/78 px-1.5 py-1.5 text-sm font-semibold shadow-soft backdrop-blur md:flex">
+          <nav className="hidden items-center gap-10 text-sm font-medium text-white/82 md:flex">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-4 py-2 text-ink-soft transition hover:bg-primary hover:text-primary-foreground"
+                className="transition hover:text-white"
               >
                 {item.label}
               </a>
@@ -304,156 +307,97 @@ export default function Home() {
 
           <a
             href="#scan"
-            className="hidden items-center gap-2 rounded-full field-button px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:-translate-y-0.5 md:inline-flex"
+            className="hidden items-center gap-2 rounded-full border border-white/15 bg-primary/90 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-black/20 transition hover:bg-primary md:inline-flex"
           >
-            Start assessment
+            View demo
             <ArrowRight className="h-4 w-4" />
           </a>
         </header>
 
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-24 pt-20 md:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end lg:pb-28 lg:pt-24">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-white/76 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary shadow-soft backdrop-blur">
-              <ShieldCheck className="h-3.5 w-3.5" />
+        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-100px)] max-w-7xl items-center gap-10 px-5 pb-16 md:px-8 lg:grid-cols-[0.72fr_0.28fr]">
+          <div className="max-w-4xl">
+            <p className="mb-8 text-sm font-bold uppercase tracking-[0.22em] text-[#f3c84f]">
               Maize quality assessment
-            </div>
-
-            <h1 className="mt-6 font-display text-[clamp(3rem,6.5vw,5.8rem)] font-semibold leading-[0.94] text-ink">
-              Check maize quality before storage or sale.
-            </h1>
-
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              Upload a maize batch image and receive a quality category,
-              confidence score, risk level, and a practical post-harvest action.
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <h1 className="max-w-4xl font-display text-[clamp(4rem,7vw,7.35rem)] font-normal leading-[0.98] tracking-[-0.055em] text-white">
+              Know your maize before storage or sale.
+            </h1>
+
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/82 md:text-xl">
+              Upload a maize image to get instant quality insights, confidence
+              score, and practical post-harvest guidance.
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-4">
               <a
                 href="#scan"
-                className="group inline-flex items-center gap-2 rounded-full field-button px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift"
+                className="inline-flex items-center gap-3 rounded-full bg-primary px-7 py-4 text-sm font-bold text-white shadow-xl shadow-black/25 transition hover:-translate-y-0.5 hover:bg-[#2d7447]"
               >
                 <Upload className="h-4 w-4" />
                 Assess a sample
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4" />
               </a>
 
               <a
-                href="#data"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-white/78 px-6 py-3.5 text-sm font-semibold text-ink shadow-soft backdrop-blur transition hover:border-primary/40 hover:text-primary"
+                href="#scan"
+                className="inline-flex items-center gap-3 rounded-full border border-white/38 bg-black/20 px-7 py-4 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-ink"
               >
-                <MapPin className="h-4 w-4 text-primary" />
-                View training data
+                <PlayCircle className="h-4 w-4" />
+                See how it works
               </a>
             </div>
-
-            <dl className="mt-12 grid max-w-lg grid-cols-3 gap-4">
-              {[
-                { k: "5", v: "Quality classes" },
-                { k: "3", v: "Public datasets" },
-                { k: "API", v: "Ready to connect" },
-              ].map((item) => (
-                <div
-                  key={item.v}
-                  className="rounded-2xl border border-border bg-white/76 p-4 shadow-soft backdrop-blur"
-                >
-                  <dt className="font-display text-3xl font-semibold text-ink">
-                    {item.k}
-                  </dt>
-                  <dd className="mt-1 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">
-                    {item.v}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          <div className="relative">
-            <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
-              <div className="hero-glass rounded-[1.75rem] p-5">
-                <p className="hero-kicker">Current progress</p>
+          <div className="hidden lg:block">
+            <div className="overflow-hidden rounded-[2rem] border border-white/24 bg-black/30 shadow-2xl shadow-black/40 backdrop-blur-md">
+              <div className="relative aspect-[4/5]">
+                <img
+                  src="/farmers-maize-harvest-background.jpg"
+                  alt="Maize quality check"
+                  className="h-full w-full object-cover object-center"
+                />
 
-                <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink">
-                  Model training and demo interface are ready for connection.
-                </h2>
-
-                <p className="mt-3 text-sm leading-6 text-ink-soft">
-                  The public-dataset workflow is prepared, the model endpoint is
-                  being connected, and the interface is ready for demonstration.
-                </p>
-
-                <div className="mt-5 grid gap-3">
-                  <div className="rounded-2xl border border-border bg-white/80 p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">
-                      Training
-                    </p>
-                    <p className="mt-2 font-display text-xl font-semibold text-ink">
-                      PyTorch + timm
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-border bg-white/80 p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">
-                      Dataset plan
-                    </p>
-                    <p className="mt-2 font-display text-xl font-semibold text-ink">
-                      Public sources
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="hero-soft-card rounded-[1.75rem] p-4">
-                  <div className="harvest-line mb-4 h-1.5 rounded-full" />
-
-                  <div className="grid gap-3">
-                    <MiniStat
-                      label="Input"
-                      value="Image"
-                      icon={<ImageIcon className="h-4 w-4" />}
-                    />
-                    <MiniStat
-                      label="Engine"
-                      value="API"
-                      icon={<Gauge className="h-4 w-4" />}
-                    />
-                    <MiniStat
-                      label="Status"
-                      value={isAnalyzing ? "Running" : "Ready"}
-                      icon={<CheckCircle2 className="h-4 w-4" />}
-                    />
-                  </div>
+                <div className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-black/62 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white backdrop-blur">
+                  <span className="h-2 w-2 rounded-full bg-success" />
+                  Live demo
                 </div>
 
-                <div className="rounded-[1.75rem] border border-white/80 bg-white/70 p-5 shadow-soft backdrop-blur">
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                    Next step
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-ink-soft">
-                    Export the best model and connect it through the prediction
-                    API route used by this interface.
-                  </p>
+                <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.84))] p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-white">
+                      <Leaf className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-white">
+                        Quality check
+                      </p>
+                      <p className="mt-1 text-sm text-white/70">
+                        Post-harvest workflow
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+      {/* END HERO */}
 
-      <section
-        id="scan"
-        className="relative overflow-hidden px-5 py-20 md:px-8"
-      >
-        <div className="relative z-10 mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <section id="scan" className="px-5 py-20 md:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="kicker">Assessment workspace</p>
-              <h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold text-ink md:text-5xl">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-clay">
+                Assessment workspace
+              </p>
+              <h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight text-ink md:text-5xl">
                 Upload a batch photo and review the result.
               </h2>
             </div>
 
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-soft">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-ink shadow-sm">
               {isAnalyzing ? (
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
               ) : (
@@ -464,7 +408,7 @@ export default function Home() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="paper-card rounded-3xl p-6 md:p-8">
+            <div className="rounded-3xl bg-white p-6 shadow-xl shadow-black/[0.04] md:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="font-display text-2xl font-semibold text-ink">
@@ -478,22 +422,22 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
-                  className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-surface text-primary shadow-soft transition hover:-translate-y-0.5 hover:border-primary/40"
+                  className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-white text-primary shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
                   title="Open camera"
                 >
                   <Camera className="h-5 w-5" />
                 </button>
               </div>
 
-              <label className="group mt-6 flex min-h-[22rem] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-surface-2 px-5 py-6 text-center transition hover:border-clay/50 hover:bg-surface-3/70">
+              <label className="group mt-6 flex min-h-[22rem] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-surface-2 px-5 py-6 text-center transition hover:border-primary/50 hover:bg-surface-3/70">
                 {previewUrl ? (
                   <img
                     src={previewUrl}
                     alt="Selected maize batch preview"
-                    className="h-72 w-full rounded-xl object-cover shadow-soft"
+                    className="h-72 w-full rounded-xl object-cover shadow-sm"
                   />
                 ) : (
-                  <span className="grid h-20 w-20 place-items-center rounded-2xl field-button text-primary-foreground shadow-soft transition group-hover:-translate-y-1">
+                  <span className="grid h-20 w-20 place-items-center rounded-2xl bg-primary text-white shadow-sm transition group-hover:-translate-y-1">
                     <Upload className="h-8 w-8" />
                   </span>
                 )}
@@ -539,17 +483,19 @@ export default function Home() {
                             setSelected(key);
                             setLastUpdated("Sample condition selected");
                           }}
-                          className={`rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition hover:-translate-y-0.5 ${isSelected
-                              ? "border-primary bg-primary text-primary-foreground shadow-soft"
-                              : "border-border bg-surface text-ink hover:border-clay/40"
-                            }`}
+                          className={`rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition hover:-translate-y-0.5 ${
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                              : "border-border bg-white text-ink hover:border-clay/40"
+                          }`}
                         >
                           <span className="block">{item.shortLabel}</span>
                           <span
-                            className={`mt-1 block text-[11px] font-medium ${isSelected
+                            className={`mt-1 block text-[11px] font-medium ${
+                              isSelected
                                 ? "text-primary-foreground/75"
                                 : "text-ink-soft"
-                              }`}
+                            }`}
                           >
                             {item.risk} risk
                           </span>
@@ -563,11 +509,13 @@ export default function Home() {
 
             <div
               id="results"
-              className="paper-card flex flex-col rounded-3xl p-6 md:p-8"
+              className="flex flex-col rounded-3xl bg-white p-6 shadow-xl shadow-black/[0.04] md:p-8"
             >
               <div className="flex items-start justify-between gap-5">
                 <div>
-                  <p className="kicker">Assessment result</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-clay">
+                    Assessment result
+                  </p>
                   <h3 className="mt-3 font-display text-4xl font-semibold leading-[1.05] text-ink md:text-5xl">
                     {result.label}
                   </h3>
@@ -593,7 +541,7 @@ export default function Home() {
                   {result.risk} risk
                 </span>
 
-                <span className="inline-flex items-center rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink">
+                <span className="inline-flex items-center rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-semibold text-ink">
                   {result.confidence}% confidence
                 </span>
               </div>
@@ -679,9 +627,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="workspace-bg relative overflow-hidden px-5 pb-20 md:px-8">
+      <section className="relative overflow-hidden px-5 pb-20 md:px-8">
         <div className="relative z-10 mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="solid-card rounded-3xl p-6 md:p-7">
+          <div className="rounded-3xl bg-white p-6 shadow-sm md:p-7">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold text-ink">
@@ -711,7 +659,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="solid-card rounded-3xl p-6 md:p-7">
+          <div className="rounded-3xl bg-white p-6 shadow-sm md:p-7">
             <div className="flex items-center gap-2">
               <PackageCheck className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold text-ink">
@@ -723,8 +671,9 @@ export default function Home() {
               {history.map((item, index) => (
                 <div
                   key={`${item.site}-${item.time}`}
-                  className={`flex items-center justify-between gap-4 bg-surface p-4 ${index !== history.length - 1 ? "border-b border-border" : ""
-                    }`}
+                  className={`flex items-center justify-between gap-4 bg-white p-4 ${
+                    index !== history.length - 1 ? "border-b border-border" : ""
+                  }`}
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-ink">
@@ -737,12 +686,13 @@ export default function Home() {
 
                   <div className="flex items-center gap-3 text-right">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.risk === "High"
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        item.risk === "High"
                           ? "bg-danger/10 text-danger"
                           : item.risk === "Medium"
-                            ? "bg-warning/12 text-warning"
+                            ? "bg-warning/10 text-warning"
                             : "bg-success/10 text-success"
-                        }`}
+                      }`}
                     >
                       {item.risk}
                     </span>
@@ -758,12 +708,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section
-        id="data"
-        className="relative overflow-hidden px-5 pb-24 pt-4 md:px-8"
-      >
-        <div className="relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[1.75rem] bg-surface">
-
+      <section id="data" className="relative overflow-hidden px-5 pb-24 pt-4 md:px-8">
+        <div className="relative z-10 mx-auto max-w-7xl overflow-hidden rounded-[1.75rem] bg-white shadow-sm">
           <div className="grid gap-10 p-6 md:grid-cols-[0.85fr_1.15fr] md:items-end md:p-10">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary">
@@ -789,7 +735,7 @@ export default function Home() {
                   href={source.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="group relative flex flex-col rounded-2xl border border-border bg-surface-2 p-5 transition hover:-translate-y-1 hover:border-clay/40 hover:bg-surface hover:shadow-lift"
+                  className="group relative flex flex-col rounded-2xl border border-border bg-surface-2 p-5 transition hover:-translate-y-1 hover:border-clay/40 hover:bg-white hover:shadow-md"
                 >
                   <div className="flex items-start justify-between">
                     <div className="grid h-9 w-9 place-items-center rounded-xl bg-clay/10 text-clay">
@@ -817,7 +763,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-border bg-surface px-5 py-10 md:px-8">
+      <footer className="border-t border-border bg-white px-5 py-10 md:px-8">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm text-ink-soft">
           <div className="flex items-center gap-2">
             <Leaf className="h-4 w-4 text-primary" />
@@ -842,7 +788,7 @@ function MiniStat({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-3 shadow-soft">
+    <div className="rounded-xl border border-border bg-white p-3 shadow-sm">
       <div className="mb-2 grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary">
         {icon}
       </div>
