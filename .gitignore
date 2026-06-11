@@ -6,6 +6,15 @@ dist
 .env.local
 .DS_Store
 npm-debug.log*
+__pycache__
+*.pyc
 data/raw
 reports/models
 *.pkl
+model_server/model_exports/*.keras
+model_server/model_exports/*.h5
+model_server/model_exports/*.pt
+model_server/model_exports/*.onnx
+model_server/model_exports/saved_model
+reports/public_training/*.pt
+reports/public_training/*.onnx

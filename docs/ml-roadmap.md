@@ -9,7 +9,7 @@ This document lists the practical pieces needed to turn the MaizeGuard Rwanda in
 | EfficientMaize: A Lightweight Dataset for Maize Classification on Resource-Constrained Devices | Start binary good/bad classification | Mendeley Data DOI `10.17632/r6vvm5jkh6.2`; raw dataset has 4,846 images: 2,635 good and 2,211 bad; augmented set has 28,910 images. |
 | GrainSet maize subset | Expand to normal, damaged/unsound, and impurity categories | Maize Figshare DOI `10.6084/m9.figshare.22987562.v2`; GrainSet contains about 19K maize kernel images with normal, defective/DU grains, and impurities. |
 | Deep Learning based Corn Kernel Classification dataset | Support good, defective, and impurity classes | CIDIS/CK-CNN dataset has 6,600 images for 3-class classification at 224x224. |
-| Local Rwanda phone images | Final validation and demo credibility | Collect 100-300 images across lighting/backgrounds if time allows. |
+| Local Rwanda phone images | Final validation and demo credibility | Keep local images for validation/demo review unless enough labeled samples are collected. |
 
 Full links are listed in [dataset-sources.md](dataset-sources.md).
 
@@ -20,22 +20,33 @@ Full links are listed in [dataset-sources.md](dataset-sources.md).
 | Good maize grain | EfficientMaize good, GrainSet normal | Store safely or prepare for sale |
 | Broken or damaged grain | GrainSet damaged/DU, corn defective | Sort before storage |
 | Impurity-contaminated grain | GrainSet impurity, corn impurity | Clean and re-screen |
-| Discolored grain | Local images plus bad/defective examples | Sell quickly or refer for review |
-| Visible mold-risk grain | Local labeled samples or curated bad examples | Do not store; refer to cooperative facility |
+| Visible mold-risk grain | Only clearly labeled mold/fungal/rotten public samples or local validation examples | Do not store; refer to cooperative facility |
 
 ## Implementation Steps
 
 1. Download datasets and document license/DOI/source.
 2. Create `data/raw`, `data/processed/train`, `data/processed/val`, and `data/processed/test`.
 3. Normalize images to one input size, such as 224x224.
-4. Train baseline custom CNN, then MobileNetV2, EfficientNetB0, and ResNet50.
+4. Train and compare PyTorch/timm models from the public-only notebook: MobileNetV3, EfficientNetV2B0, and ConvNeXtTiny.
 5. Evaluate accuracy, precision, recall, F1-score, confusion matrix, model size, and inference time.
-6. Export selected model to `.keras`, SavedModel, ONNX, or TensorFlow.js.
-7. Replace the mock `/api/analyze` endpoint with a FastAPI or Next.js inference adapter.
+6. Export selected model to `.pt` and optional ONNX for backend inference.
+7. Serve the model through FastAPI and keep Next.js calling `/api/analyze`.
+
+## Current Public-Only Training Plan
+
+The latest workflow is stored in `notebooks/maizeguard_public_datasets_pytorch_training.ipynb`.
+
+The repo script version is:
+
+- `scripts/prepare_public_dataset.py`
+- `scripts/train_pytorch_public.py`
+- `model_server/pytorch_main.py`
+
+The current safe public classes are `good`, `broken`, `impurity`, and `mold_risk`. The `mold_risk` class is used only when source labels clearly indicate mold, fungus, infection, rotten, or similar visible-risk wording.
 
 ## First Local Training Result
 
-Dataset used: CK-CNN individual kernel images prepared into `good`, `broken`, `impurity`, and `mold`.
+Dataset used: CK-CNN individual kernel images prepared into `good`, `broken`, `impurity`, and early `mold`/rotten support.
 
 Short CNN comparison run: 3 epochs, 224x224 images, ImageNet transfer weights where available.
 
@@ -52,4 +63,4 @@ Deployment note: ResNet50 performed best on the first small test set, but Mobile
 
 ## Demo Boundary
 
-The app now includes a lightweight exported baseline model for browser-side predictions at `public/model/maize_linear_model.json`. The `/api/analyze` endpoint remains shaped like the final ML endpoint and can later be replaced by ResNet50/MobileNetV2 inference.
+The frontend calls `/api/analyze`, and the Next.js route proxies to `MODEL_API_URL`. For the latest PyTorch notebook export, run `model_server/pytorch_main.py` with `maizeguard_public_best_model.pt` and `maizeguard_model_metadata.json`.

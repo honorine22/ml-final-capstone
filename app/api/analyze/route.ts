@@ -1,5 +1,21 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
+type QualityKey = "good" | "broken" | "impurity" | "discolored" | "mold";
+
+type ModelApiResponse = {
+  label: string;
+  confidence: number;
+  confidence_percent?: number;
+  confidencePercent?: number;
+  probabilities?: Record<string, number>;
+  risk: string;
+  action: string;
+  recommendation?: string;
+  detail?: string;
+};
+
 const rules = [
   {
     match: ["mold", "fungus", "aflatoxin"],
@@ -39,26 +55,104 @@ const rules = [
   }
 ];
 
-export async function POST(request: Request) {
-  const formData = await request.formData();
-  const file = formData.get("image");
-  const name = file instanceof File ? file.name.toLowerCase() : "";
+function normalizeLabel(label: string): QualityKey {
+  const value = label.toLowerCase().trim();
+
+  if (value.includes("good") || value.includes("healthy") || value.includes("normal")) return "good";
+  if (value.includes("broken") || value.includes("damage") || value.includes("defect")) return "broken";
+  if (value.includes("impurity") || value.includes("dirty") || value.includes("foreign")) return "impurity";
+  if (value.includes("discolor") || value.includes("stain") || value.includes("dark")) return "discolored";
+  if (value.includes("mold") || value.includes("rotten") || value.includes("fung")) return "mold";
+
+  return "discolored";
+}
+
+function fallbackPrediction(file: File | null) {
+  const name = file?.name.toLowerCase() ?? "";
   const matched = rules.find((rule) => rule.match.some((term) => name.includes(term)));
 
   if (matched) {
     const { match, ...prediction } = matched;
     void match;
-    return NextResponse.json(prediction);
+    return prediction;
   }
 
-  return NextResponse.json(
-    {
-      key: "discolored",
-      label: "Needs quality review",
-      confidence: 71,
-      risk: "Medium",
-      action: "Do not mark as good; inspect or refer",
-      detail: "The demo endpoint could not confidently verify this as clean maize grain, so it should be reviewed before storage or sale."
+  return {
+    key: "discolored",
+    label: "Needs quality review",
+    confidence: 71,
+    risk: "Medium",
+    action: "Do not mark as good; inspect or refer",
+    detail: "The model API is not connected yet, so this sample should be reviewed before storage or sale."
+  };
+}
+
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const file = formData.get("image");
+
+  if (!(file instanceof File)) {
+    return NextResponse.json(
+      { error: "No image file was uploaded." },
+      { status: 400 }
+    );
+  }
+
+  const modelApiUrl = process.env.MODEL_API_URL;
+
+  if (!modelApiUrl) {
+    return NextResponse.json({
+      ...fallbackPrediction(file),
+      source: "local-fallback"
+    });
+  }
+
+  try {
+    const forwardFormData = new FormData();
+    forwardFormData.append("image", file, file.name);
+
+    const response = await fetch(`${modelApiUrl.replace(/\/$/, "")}/predict`, {
+      method: "POST",
+      body: forwardFormData
+    });
+
+    if (!response.ok) {
+      const details = await response.text();
+
+      return NextResponse.json(
+        {
+          error: "Model API failed.",
+          details,
+          fallback: fallbackPrediction(file)
+        },
+        { status: response.status }
+      );
     }
-  );
+
+    const result = (await response.json()) as ModelApiResponse;
+    const key = normalizeLabel(result.label);
+    const confidencePercent = result.confidence_percent ?? result.confidencePercent ?? result.confidence * 100;
+
+    return NextResponse.json({
+      key,
+      label: result.label,
+      confidence: Math.round(confidencePercent),
+      confidenceRaw: result.confidence,
+      confidencePercent,
+      probabilities: result.probabilities ?? {},
+      risk: result.risk,
+      action: result.action,
+      detail: result.recommendation ?? result.detail ?? "",
+      source: "model-api"
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to call model API.",
+        details: error instanceof Error ? error.message : "Unknown error",
+        fallback: fallbackPrediction(file)
+      },
+      { status: 502 }
+    );
+  }
 }

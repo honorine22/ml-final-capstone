@@ -3,61 +3,79 @@
 @tailwind utilities;
 
 :root {
-  --background: 251 244 229;
-  --foreground: 16 32 24;
+  /* clean light field palette */
+  --background: 247 250 246;
+  --foreground: 20 31 23;
 
-  --ink: 16 32 24;
-  --ink-soft: 76 90 77;
+  --ink: 20 31 23;
+  --ink-soft: 82 94 84;
 
   --surface: 255 255 255;
-  --surface-2: 247 239 224;
+  --surface-2: 241 246 239;
+  --surface-3: 231 239 228;
 
-  --primary: 31 94 55;
-  --primary-foreground: 255 250 238;
+  --primary: 36 78 49;
+  --primary-foreground: 255 255 255;
 
-  --secondary: 242 236 222;
-  --secondary-foreground: 32 55 41;
+  --secondary: 235 241 232;
+  --secondary-foreground: 36 48 38;
 
-  --muted: 241 235 221;
-  --muted-foreground: 98 105 93;
+  --muted: 232 238 229;
+  --muted-foreground: 98 107 96;
 
-  --accent: 237 166 49;
-  --accent-foreground: 16 32 24;
+  --accent: 174 112 43;
+  --accent-foreground: 255 255 255;
 
-  --success: 48 137 83;
-  --warning: 226 159 45;
-  --danger: 202 48 43;
+  --clay: 133 83 49;
+  --harvest: 183 139 45;
+  --soil: 24 31 24;
 
-  --destructive: 202 48 43;
-  --destructive-foreground: 255 250 238;
+  --success: 55 127 74;
+  --warning: 171 111 35;
+  --danger: 150 56 45;
 
-  --border: 224 218 204;
-  --input: 224 218 204;
-  --ring: 31 94 55;
+  --destructive: 150 56 45;
+  --destructive-foreground: 255 255 255;
 
-  --gradient-hero:
-    radial-gradient(70% 60% at 86% 20%, rgb(var(--accent) / 0.24), transparent 60%),
-    radial-gradient(60% 55% at 8% 88%, rgb(var(--primary) / 0.14), transparent 66%),
-    radial-gradient(55% 45% at 50% 0%, rgb(255 255 255 / 0.72), transparent 70%),
-    linear-gradient(180deg, #fff6df 0%, #fbf4e5 100%);
+  --border: 218 226 214;
+  --input: 218 226 214;
+  --ring: 36 78 49;
 
-  --gradient-studio:
-    radial-gradient(60% 50% at 0% 0%, rgb(var(--accent) / 0.1), transparent 60%),
-    radial-gradient(50% 45% at 100% 100%, rgb(var(--primary) / 0.08), transparent 65%),
-    linear-gradient(180deg, #fbf4e5 0%, #f5ead7 100%);
+  /*
+    Light hero with visible harvest image:
+    left side stays clean for text,
+    right side keeps the photo visible.
+  */
+  --hero-bg:
+    linear-gradient(
+      90deg,
+      rgb(247 250 246 / 0.98) 0%,
+      rgb(247 250 246 / 0.96) 36%,
+      rgb(247 250 246 / 0.74) 58%,
+      rgb(247 250 246 / 0.28) 82%,
+      rgb(247 250 246 / 0.12) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.35) 0%,
+      rgb(247 250 246 / 0.28) 45%,
+      rgb(247 250 246 / 0.62) 100%
+    ),
+    url("/farmers-harvesting-maize.jpg");
 
-  --gradient-data:
-    radial-gradient(55% 60% at 90% 10%, rgb(var(--accent) / 0.14), transparent 60%),
-    radial-gradient(45% 50% at 5% 90%, rgb(var(--primary) / 0.12), transparent 65%),
-    linear-gradient(180deg, #f6ead7 0%, #fbf4e5 100%);
+  --workspace-bg:
+    linear-gradient(180deg, #f7faf6 0%, #edf4ea 100%);
 
-  --gradient-primary: linear-gradient(135deg, #145c35 0%, #2f8b58 100%);
-  --gradient-accent: linear-gradient(135deg, #f6c56a 0%, #e98b2a 100%);
-  --gradient-text: linear-gradient(135deg, #145c35 0%, #8c8500 55%, #c98200 100%);
+  --data-bg:
+    radial-gradient(circle at 90% 10%, rgb(183 139 45 / 0.08), transparent 28rem),
+    linear-gradient(180deg, #edf4ea 0%, #f7faf6 100%);
 
-  --shadow-soft: 0 4px 20px -8px rgb(16 32 24 / 0.14);
-  --shadow-lift: 0 24px 60px -20px rgb(16 32 24 / 0.24);
-  --shadow-glow: 0 10px 40px -10px rgb(237 166 49 / 0.48);
+  --field-button: linear-gradient(135deg, #17351f 0%, #2f673e 100%);
+  --clay-button: linear-gradient(135deg, #74452d 0%, #ae702b 100%);
+  --harvest-line: linear-gradient(90deg, #244e31 0%, #855331 48%, #b78b2d 100%);
+
+  --shadow-soft: 0 12px 32px -24px rgb(22 30 24 / 0.4);
+  --shadow-lift: 0 30px 80px -48px rgb(22 30 24 / 0.45);
 }
 
 * {
@@ -83,89 +101,103 @@ h3,
 .font-display {
   font-family: var(--font-fraunces), ui-serif, Georgia, serif;
   font-optical-sizing: auto;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 ::selection {
-  background: rgb(var(--accent) / 0.35);
+  background: rgb(var(--harvest) / 0.32);
 }
 
 @layer utilities {
-  .hero-bg {
-    background: var(--gradient-hero);
+  .farm-hero {
+    position: relative;
+    background: var(--hero-bg);
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    isolation: isolate;
   }
 
-  .studio-bg {
-    background: var(--gradient-studio);
+  .farm-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 34%;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgb(247 250 246 / 0.76) 100%
+    );
+  }
+
+  .farm-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .workspace-bg {
+    background: var(--workspace-bg);
   }
 
   .data-bg {
-    background: var(--gradient-data);
+    background: var(--data-bg);
   }
 
-  .gradient-primary {
-    background: var(--gradient-primary);
+  .field-button {
+    background: var(--field-button);
   }
 
-  .gradient-accent {
-    background: var(--gradient-accent);
+  .clay-button {
+    background: var(--clay-button);
   }
 
-  .text-gradient {
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .harvest-line {
+    background: var(--harvest-line);
   }
 
-  .glass-card {
-    background: rgb(var(--surface) / 0.75);
-    backdrop-filter: blur(24px) saturate(140%);
-    border: 1px solid rgb(var(--ink) / 0.08);
-    box-shadow: var(--shadow-soft);
+  .paper-card {
+    background: rgb(var(--surface));
   }
 
-  .lift-card {
+  .solid-card {
+    background: rgb(var(--surface));
+  }
+
+  .field-card {
     background: rgb(var(--surface) / 0.96);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgb(var(--ink) / 0.06);
+    border: 1px solid rgb(var(--border));
     box-shadow: var(--shadow-lift);
   }
 
-  .blob {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(90px);
-    pointer-events: none;
+  .hero-glass {
+    background: rgb(255 255 255 / 0.78);
+    border: 1px solid rgb(255 255 255 / 0.78);
+    box-shadow: 0 28px 70px -46px rgb(20 31 23 / 0.55);
+    backdrop-filter: blur(18px) saturate(135%);
   }
 
-  .animate-float-slow {
-    animation: float-slow 14s ease-in-out infinite;
+  .hero-soft-card {
+    background: rgb(255 255 255 / 0.86);
+    border: 1px solid rgb(218 226 214 / 0.82);
+    box-shadow: 0 16px 50px -36px rgb(20 31 23 / 0.45);
+    backdrop-filter: blur(14px);
   }
 
-  .animate-float-slower {
-    animation: float-slower 18s ease-in-out infinite;
-  }
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
+  .kicker {
+    color: rgb(var(--clay));
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 0.72rem;
   }
 
-  50% {
-    transform: translate(20px, -30px) scale(1.05);
-  }
-}
-
-@keyframes float-slower {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  50% {
-    transform: translate(-25px, 20px) scale(0.95);
+  .hero-kicker {
+    color: rgb(var(--primary));
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 0.72rem;
   }
 }

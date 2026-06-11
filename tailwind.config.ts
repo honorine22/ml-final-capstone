@@ -21,6 +21,7 @@ const config: Config = {
 
         surface: "rgb(var(--surface) / <alpha-value>)",
         "surface-2": "rgb(var(--surface-2) / <alpha-value>)",
+        "surface-3": "rgb(var(--surface-3) / <alpha-value>)",
 
         primary: "rgb(var(--primary) / <alpha-value>)",
         "primary-foreground": "rgb(var(--primary-foreground) / <alpha-value>)",
@@ -33,6 +34,10 @@ const config: Config = {
 
         accent: "rgb(var(--accent) / <alpha-value>)",
         "accent-foreground": "rgb(var(--accent-foreground) / <alpha-value>)",
+
+        clay: "rgb(var(--clay) / <alpha-value>)",
+        harvest: "rgb(var(--harvest) / <alpha-value>)",
+        soil: "rgb(var(--soil) / <alpha-value>)",
 
         success: "rgb(var(--success) / <alpha-value>)",
         warning: "rgb(var(--warning) / <alpha-value>)",
@@ -49,11 +54,11 @@ const config: Config = {
       boxShadow: {
         soft: "var(--shadow-soft)",
         lift: "var(--shadow-lift)",
-        glow: "var(--shadow-glow)",
+        insetLine: "inset 0 1px 0 rgb(255 255 255 / 0.55)",
       },
       borderRadius: {
-        "2xl": "1.5rem",
-        "3xl": "2rem",
+        "2xl": "1.25rem",
+        "3xl": "1.75rem",
       },
     },
   },
