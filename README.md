@@ -17,7 +17,7 @@ The current demo uses a Next.js frontend, a Next.js API route, and a FastAPI PyT
 Add the final GitHub link after pushing:
 
 ```text
-https://github.com/<your-username>/<your-repo-name>
+https://github.com/honorine22/ml-final-capstone
 ```
 
 ## Technology Stack
@@ -212,24 +212,6 @@ More detail:
 
 [docs/deployment-plan.md](docs/deployment-plan.md)
 
-## Video Demo Guidance
+Video Demo
 
-Required length: 5-10 minutes.
-
-Recommended flow:
-
-1. Open the app and state the maize quality screening problem briefly.
-2. Upload a maize image.
-3. Show the label, confidence, risk, `needs_review`, and recommendation.
-4. Explain that the frontend calls Next.js API, which calls FastAPI.
-5. Open FastAPI Swagger at `http://localhost:8000/docs`.
-6. Show notebook outputs: dataset distribution, model architecture, metrics, confusion matrix.
-7. Show diagrams and deployment plan.
-
-Use [docs/video-demo-script.md](docs/video-demo-script.md) as the script/checklist.
-
-## Submission Checklist
-
-See:
-
-[docs/submission-checklist.md](docs/submission-checklist.md)
+Link: https://youtu.be/4_IMnTrr39o
