@@ -20,6 +20,35 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def choose_device(force_cpu: bool = False):
+    if force_cpu or not torch.cuda.is_available():
+        return torch.device("cpu"), "cpu"
+
+    try:
+        device = torch.device("cuda")
+        smoke = nn.Sequential(nn.Conv2d(3, 4, 3, padding=1), nn.BatchNorm2d(4)).to(device)
+        sample = torch.randn(2, 3, 32, 32, device=device)
+        _ = smoke(sample)
+        torch.cuda.synchronize()
+        return device, torch.cuda.get_device_name(0)
+    except Exception as exc:
+        print("CUDA is visible but unusable in this runtime; falling back to CPU.")
+        print(f"CUDA check error: {exc}")
+        return torch.device("cpu"), "cpu_fallback"
+
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma: float = 1.5, weight=None, label_smoothing: float = 0.03):
+        super().__init__()
+        self.gamma = gamma
+        self.ce = nn.CrossEntropyLoss(weight=weight, label_smoothing=label_smoothing, reduction="none")
+
+    def forward(self, logits, targets):
+        ce_loss = self.ce(logits, targets)
+        pt = torch.exp(-ce_loss)
+        return ((1 - pt) ** self.gamma * ce_loss).mean()
+
+
 class MaizeImageDataset(Dataset):
     def __init__(self, frame: pd.DataFrame, class_to_idx: dict[str, int], transform=None):
         self.frame = frame.reset_index(drop=True)
@@ -54,6 +83,13 @@ def parse_args():
     parser.add_argument("--lr-head", type=float, default=1e-3)
     parser.add_argument("--lr-finetune", type=float, default=2e-5)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
+    parser.add_argument("--label-smoothing", type=float, default=0.03)
+    parser.add_argument("--focal-gamma", type=float, default=1.5)
+    parser.add_argument("--class-weight-cap", type=float, default=2.0)
+    parser.add_argument("--balanced-sampler", action="store_true", help="Use only when class imbalance is severe.")
+    parser.add_argument("--early-stop-patience", type=int, default=3)
+    parser.add_argument("--grad-clip", type=float, default=1.0)
+    parser.add_argument("--force-cpu", action="store_true")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--no-pretrained", action="store_true")
     return parser.parse_args()
@@ -94,11 +130,12 @@ def set_backbone_trainable(model, trainable: bool):
             parameter.requires_grad = True
 
 
-def evaluate(model, loader, criterion, device, class_names):
+def evaluate(model, loader, criterion, device, class_names, save_rows: bool = False):
     model.eval()
     losses, y_true, y_pred, y_prob = [], [], [], []
+    rows = []
     with torch.no_grad():
-        for images, labels in loader:
+        for batch_index, (images, labels) in enumerate(loader):
             images = images.to(device)
             labels = labels.to(device)
             logits = model(images)
@@ -108,6 +145,21 @@ def evaluate(model, loader, criterion, device, class_names):
             y_true.extend(labels.cpu().numpy().tolist())
             y_pred.extend(preds.cpu().numpy().tolist())
             y_prob.extend(probs.cpu().numpy().tolist())
+            if save_rows:
+                for item_index, (true_idx, pred_idx, prob_values) in enumerate(
+                    zip(labels.cpu().numpy().tolist(), preds.cpu().numpy().tolist(), probs.cpu().numpy().tolist())
+                ):
+                    rows.append(
+                        {
+                            "batch": batch_index,
+                            "item": item_index,
+                            "true": class_names[true_idx],
+                            "pred": class_names[pred_idx],
+                            "confidence": float(max(prob_values)),
+                            "is_error": true_idx != pred_idx,
+                            **{f"prob_{class_names[i]}": float(prob_values[i]) for i in range(len(class_names))},
+                        }
+                    )
 
     precision, recall, f1, _ = precision_recall_fscore_support(
         y_true,
@@ -129,11 +181,13 @@ def evaluate(model, loader, criterion, device, class_names):
             output_dict=True,
         ),
         "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
+        "prediction_rows": rows,
     }
 
 
-def train_phase(model, train_loader, val_loader, criterion, optimizer, epochs, phase, model_name, out_dir, device, class_names):
+def train_phase(model, train_loader, val_loader, criterion, optimizer, epochs, phase, model_name, out_dir, device, class_names, patience, grad_clip):
     best_f1 = -1.0
+    stale_epochs = 0
     best_path = out_dir / f"{model_name}_{phase}_best.pt"
     rows = []
 
@@ -149,6 +203,8 @@ def train_phase(model, train_loader, val_loader, criterion, optimizer, epochs, p
             logits = model(images)
             loss = criterion(logits, labels)
             loss.backward()
+            if grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             optimizer.step()
             losses.append(loss.item())
 
@@ -168,7 +224,13 @@ def train_phase(model, train_loader, val_loader, criterion, optimizer, epochs, p
 
         if val_metrics["f1_macro"] > best_f1:
             best_f1 = val_metrics["f1_macro"]
+            stale_epochs = 0
             torch.save(model.state_dict(), best_path)
+        else:
+            stale_epochs += 1
+            if stale_epochs >= patience:
+                print(f"Early stopping {model_name}/{phase} after {epoch} epochs.")
+                break
 
     return pd.DataFrame(rows), best_path, best_f1
 
@@ -188,8 +250,9 @@ def main():
     class_names = json.loads((manifest_dir / "class_names.json").read_text(encoding="utf-8"))
     class_to_idx = {name: index for index, name in enumerate(class_names)}
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device, device_name = choose_device(args.force_cpu)
     print("Device:", device)
+    print("Device name:", device_name)
     print("Classes:", class_names)
 
     train_tfms, valid_tfms = build_transforms(args.image_size)
@@ -198,16 +261,23 @@ def main():
     test_ds = MaizeImageDataset(test_df, class_to_idx, transform=valid_tfms)
 
     class_counts = train_df["label"].value_counts().to_dict()
-    sample_weights = train_df["label"].map(lambda label: 1.0 / class_counts[label]).values
-    sampler = WeightedRandomSampler(sample_weights, num_samples=len(sample_weights), replacement=True)
+    sampler = None
+    shuffle_train = True
+    if args.balanced_sampler:
+        sample_weights = train_df["label"].map(lambda label: 1.0 / class_counts[label]).values
+        sampler = WeightedRandomSampler(sample_weights, num_samples=len(sample_weights), replacement=True)
+        shuffle_train = False
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, sampler=sampler, num_workers=2, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
-    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
+    pin_memory = device.type == "cuda"
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, sampler=sampler, shuffle=shuffle_train, num_workers=2, pin_memory=pin_memory)
+    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=pin_memory)
+    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=pin_memory)
 
     counts = train_df["label"].value_counts().reindex(class_names).fillna(1).values.astype(float)
-    class_weights = torch.tensor(counts.sum() / (len(counts) * counts), dtype=torch.float32).to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    weights = counts.sum() / (len(counts) * counts)
+    weights = np.minimum(weights, args.class_weight_cap)
+    class_weights = torch.tensor(weights, dtype=torch.float32).to(device)
+    criterion = FocalLoss(gamma=args.focal_gamma, weight=class_weights, label_smoothing=args.label_smoothing)
 
     histories, summaries = [], []
     for model_name in args.models:
@@ -221,7 +291,7 @@ def main():
             weight_decay=args.weight_decay,
         )
         head_history, head_path, _ = train_phase(
-            model, train_loader, val_loader, criterion, optimizer, args.head_epochs, "head", model_name, out_dir, device, class_names
+            model, train_loader, val_loader, criterion, optimizer, args.head_epochs, "head", model_name, out_dir, device, class_names, args.early_stop_patience, args.grad_clip
         )
 
         if head_path.exists():
@@ -229,11 +299,11 @@ def main():
         set_backbone_trainable(model, trainable=True)
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr_finetune, weight_decay=args.weight_decay)
         finetune_history, best_path, best_val_f1 = train_phase(
-            model, train_loader, val_loader, criterion, optimizer, args.finetune_epochs, "finetune", model_name, out_dir, device, class_names
+            model, train_loader, val_loader, criterion, optimizer, args.finetune_epochs, "finetune", model_name, out_dir, device, class_names, args.early_stop_patience, args.grad_clip
         )
 
         model.load_state_dict(torch.load(best_path, map_location=device))
-        test_metrics = evaluate(model, test_loader, criterion, device, class_names)
+        test_metrics = evaluate(model, test_loader, criterion, device, class_names, save_rows=True)
         size_mb = best_path.stat().st_size / (1024 * 1024)
 
         summary = {
@@ -245,20 +315,24 @@ def main():
             "test_f1_macro": test_metrics["f1_macro"],
             "model_size_mb": round(size_mb, 2),
             "best_model_path": str(best_path),
+            "device_used": str(device),
+            "device_name": device_name,
             "classification_report": test_metrics["classification_report"],
             "confusion_matrix": test_metrics["confusion_matrix"],
+            "prediction_rows": test_metrics["prediction_rows"],
         }
         summaries.append(summary)
         histories.extend([head_history, finetune_history])
-        print(json.dumps({k: v for k, v in summary.items() if k not in {"classification_report", "confusion_matrix"}}, indent=2))
+        print(json.dumps({k: v for k, v in summary.items() if k not in {"classification_report", "confusion_matrix", "prediction_rows"}}, indent=2))
 
     history_df = pd.concat(histories, ignore_index=True)
-    summary_df = pd.DataFrame([{k: v for k, v in row.items() if k not in {"classification_report", "confusion_matrix"}} for row in summaries])
-    summary_df = summary_df.sort_values("test_f1_macro", ascending=False).reset_index(drop=True)
+    summary_df = pd.DataFrame([{k: v for k, v in row.items() if k not in {"classification_report", "confusion_matrix", "prediction_rows"}} for row in summaries])
+    summary_df = summary_df.sort_values("best_val_f1_macro", ascending=False).reset_index(drop=True)
     best = next(row for row in summaries if row["model"] == summary_df.iloc[0]["model"])
 
     final_model_path = out_dir / "maizeguard_public_best_model.pt"
     shutil.copy(Path(best["best_model_path"]), final_model_path)
+    pd.DataFrame(best["prediction_rows"] if "prediction_rows" in best else []).to_csv(out_dir / "test_predictions_and_errors.csv", index=False)
 
     metadata = {
         "model_name": best["model"],
@@ -266,12 +340,20 @@ def main():
         "image_size": args.image_size,
         "normalization_mean": [0.485, 0.456, 0.406],
         "normalization_std": [0.229, 0.224, 0.225],
-        "selected_by": "highest test macro F1 among compared PyTorch/timm models",
+        "selected_by": "highest validation macro F1 among compared PyTorch/timm models",
+        "device_used": best.get("device_used", str(device)),
+        "device_name": best.get("device_name", device_name),
+        "confidence_threshold": 0.60,
+        "risk_priority_threshold": 0.55,
     }
 
     history_df.to_csv(out_dir / "training_history.csv", index=False)
     summary_df.to_csv(out_dir / "model_comparison_summary.csv", index=False)
-    (out_dir / "model_comparison_summary.json").write_text(json.dumps({"ranking": summaries, "recommended_model": best["model"]}, indent=2), encoding="utf-8")
+    json_summaries = [
+        {key: value for key, value in row.items() if key != "prediction_rows"}
+        for row in summaries
+    ]
+    (out_dir / "model_comparison_summary.json").write_text(json.dumps({"ranking": json_summaries, "recommended_model": best["model"]}, indent=2), encoding="utf-8")
     (out_dir / "maizeguard_model_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     print(f"Recommended model: {best['model']}")
     print(f"Final model: {final_model_path}")

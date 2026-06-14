@@ -31,6 +31,16 @@ IGNORE_PATTERNS = [
     "architecture",
     "fig",
     "figure",
+    "grainset-tiny",
+    "tiny_data",
+]
+
+NON_MAIZE_PATTERNS = [
+    "sorg",
+    "sorghum",
+    "wheat",
+    "rice",
+    "bean",
 ]
 
 LABEL_KEYWORDS = {
@@ -62,7 +72,35 @@ def should_ignore(path: Path) -> bool:
     return any(pattern in text for pattern in IGNORE_PATTERNS)
 
 
+def is_non_maize(path: Path) -> bool:
+    parts = [part.lower() for part in path.parts]
+    text = " ".join(parts)
+    return any(re.search(rf"(^|[^a-z]){re.escape(pattern)}([^a-z]|$)", text) for pattern in NON_MAIZE_PATTERNS)
+
+
+def ckcnn_label(path: Path) -> str | None:
+    parts = [part.lower() for part in path.parts]
+    if "good" in parts:
+        return "good"
+    if "impurity" in parts:
+        return "impurity"
+    if "broken" in parts or "defective" in parts or "damaged" in parts:
+        return "broken"
+    if "rotten" in parts or "mold" in parts or "fungus" in parts:
+        return "mold_risk"
+    return None
+
+
 def infer_label(path: Path) -> str | None:
+    if is_non_maize(path):
+        return None
+
+    source = source_name(path)
+    if source == "CK-CNN":
+        label = ckcnn_label(path)
+        if label is not None:
+            return label
+
     text = " ".join(part.lower() for part in path.parts[-8:])
 
     # Priority matters: impurity and mold-risk should not be swallowed by broad "bad" labels.
@@ -86,15 +124,22 @@ def source_name(path: Path) -> str:
 
 def collect_manifest(roots: list[Path]) -> pd.DataFrame:
     rows = []
+    skipped = []
     for root in roots:
         if not root.exists():
             print(f"Skipping missing root: {root}")
             continue
         for path in root.rglob("*"):
             if not path.is_file() or not is_image(path) or should_ignore(path):
+                if path.is_file() and is_image(path):
+                    skipped.append({"path": str(path), "reason": "ignored_pattern"})
+                continue
+            if is_non_maize(path):
+                skipped.append({"path": str(path), "reason": "non_maize"})
                 continue
             label = infer_label(path)
             if label is None:
+                skipped.append({"path": str(path), "reason": "no_safe_label"})
                 continue
             rows.append(
                 {
@@ -105,7 +150,9 @@ def collect_manifest(roots: list[Path]) -> pd.DataFrame:
                     "file_name": path.name,
                 }
             )
-    return pd.DataFrame(rows).drop_duplicates(subset=["path"]).reset_index(drop=True)
+    frame = pd.DataFrame(rows).drop_duplicates(subset=["path"]).reset_index(drop=True)
+    frame.attrs["skipped"] = skipped
+    return frame
 
 
 def copy_image(src: Path, dst: Path, image_size: int) -> bool:
@@ -145,6 +192,7 @@ def parse_args():
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--max-images-per-class", type=int, default=2500)
     parser.add_argument("--min-images-per-class", type=int, default=40)
+    parser.add_argument("--exclude-mold-risk", action="store_true", help="Train a safer 3-class model when public mold labels are too weak.")
     parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()
 
@@ -159,14 +207,18 @@ def main():
     report_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = collect_manifest(roots)
+    skipped = manifest.attrs.get("skipped", [])
     if manifest.empty:
         raise SystemExit("No mapped public images found. Add CK-CNN, GrainSet, or EfficientMaize under the roots.")
+
+    class_names = [name for name in CLASS_NAMES if not (args.exclude_mold_risk and name == "mold_risk")]
+    manifest = manifest[manifest["label"].isin(class_names)].copy()
 
     counts_before = manifest["label"].value_counts().to_dict()
     valid_classes = [
         label
         for label, count in counts_before.items()
-        if label in CLASS_NAMES and count >= args.min_images_per_class
+        if label in class_names and count >= args.min_images_per_class
     ]
     manifest = manifest[manifest["label"].isin(valid_classes)].copy()
 
@@ -206,7 +258,7 @@ def main():
         frame.to_csv(report_dir / f"{split}_manifest.csv", index=False)
 
     summary = {
-        "class_names": CLASS_NAMES,
+        "class_names": class_names,
         "counts_before_filtering": counts_before,
         "counts_after_balancing": manifest["label"].value_counts().to_dict(),
         "prepared_counts": {
@@ -217,14 +269,27 @@ def main():
             "CK-CNN good": "good",
             "CK-CNN defective/broken": "broken",
             "CK-CNN impurity": "impurity",
+            "CK-CNN rotten/fungal": "mold_risk only if keeping the 4-class model",
             "GrainSet healthy maize": "good",
             "GrainSet damaged/unsound maize": "broken or mold_risk only when label is clear",
             "EfficientMaize good": "good",
             "EfficientMaize bad": "support only; do not force unclear bad images into mold_risk",
+            "ignored": "GrainSet-tiny, sorghum/sorg, wheat, rice, masks, annotations, and unclear labels",
         },
     }
     (report_dir / "dataset_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    (report_dir / "class_names.json").write_text(json.dumps(CLASS_NAMES, indent=2), encoding="utf-8")
+    (report_dir / "class_names.json").write_text(json.dumps(class_names, indent=2), encoding="utf-8")
+    (report_dir / "dataset_mapping_audit.json").write_text(
+        json.dumps(
+            {
+                "mapped_by_source_and_label": pd.crosstab(manifest["source"], manifest["label"]).to_dict(),
+                "skipped_examples": skipped[:1000],
+                "skipped_count": len(skipped),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     print(json.dumps(summary, indent=2))
     print(f"Prepared dataset: {out_dir}")
     print(f"Reports: {report_dir}")

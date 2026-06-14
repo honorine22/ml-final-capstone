@@ -72,6 +72,24 @@ python scripts/prepare_public_dataset.py \
   --report-dir reports/public_training
 ```
 
+If `mold_risk` keeps confusing the model because the public labels are weak, train a safer 3-class model:
+
+```bash
+python scripts/prepare_public_dataset.py \
+  --roots data/raw \
+  --out-dir data/public_prepared \
+  --report-dir reports/public_training \
+  --exclude-mold-risk
+```
+
+The preparation step now writes:
+
+```text
+reports/public_training/dataset_mapping_audit.json
+```
+
+Use this file to confirm the notebook is not training on `sorg`, `sorghum`, `GrainSet-tiny`, rice, or wheat folders.
+
 Train and compare models:
 
 ```bash
@@ -81,6 +99,26 @@ python scripts/train_pytorch_public.py \
   --head-epochs 3 \
   --finetune-epochs 8
 ```
+
+If Kaggle shows `CUDA error: no kernel image is available for execution on the device`, force CPU:
+
+```bash
+python scripts/train_pytorch_public.py \
+  --manifest-dir reports/public_training \
+  --out-dir reports/public_training \
+  --force-cpu
+```
+
+The training script also includes:
+
+- CUDA smoke test with automatic CPU fallback
+- capped class weights
+- focal loss with label smoothing
+- optional balanced sampler only when you pass `--balanced-sampler`
+- gradient clipping
+- early stopping
+- validation macro F1 model selection
+- saved `test_predictions_and_errors.csv`
 
 The script compares:
 

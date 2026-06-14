@@ -1,0 +1,16 @@
+{
+  "label": "good",
+  "raw_label": "good",
+  "confidence": 0.988,
+  "confidence_percent": 98.8,
+  "needs_review": false,
+  "probabilities": {
+    "good": 0.988,
+    "broken": 0.004,
+    "impurity": 0.002,
+    "mold_risk": 0.006
+  },
+  "risk": "Low",
+  "action": "Store safely or prepare for sale",
+  "recommendation": "The maize appears clean. Store in a dry place and monitor normally."
+}

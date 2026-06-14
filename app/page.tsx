@@ -26,12 +26,24 @@ import {
 } from "lucide-react";
 
 type QualityKey = "good" | "broken" | "impurity" | "discolored" | "mold";
-type Risk = "Low" | "Medium" | "High";
+type Risk = "Low" | "Medium" | "High" | "Needs review";
 
 type AnalyzeResponse = {
   key?: QualityKey;
+  label?: string;
+  confidence?: number;
+  confidencePercent?: number;
+  needsReview?: boolean;
+  risk?: Risk | string;
+  action?: string;
+  detail?: string;
   fallback?: {
     key?: QualityKey;
+    confidence?: number;
+    needsReview?: boolean;
+    risk?: Risk | string;
+    action?: string;
+    detail?: string;
   };
 };
 
@@ -44,6 +56,10 @@ type Scenario = {
   detail: string;
   priority: string;
   tone: "success" | "warning" | "danger";
+};
+
+type DisplayResult = Scenario & {
+  needsReview?: boolean;
 };
 
 const scenarios: Record<QualityKey, Scenario> = {
@@ -209,9 +225,15 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("Ready to assess");
+  const [analysisResult, setAnalysisResult] = useState<Partial<DisplayResult> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const result = scenarios[selected];
+  const baseResult = scenarios[selected];
+  const result: DisplayResult = {
+    ...baseResult,
+    ...analysisResult,
+    tone: analysisResult?.needsReview ? "warning" : analysisResult?.tone ?? baseResult.tone,
+  };
   const tones = toneClasses(result.tone);
   const confidenceWidth = useMemo(
     () => `${result.confidence}%`,
@@ -233,6 +255,7 @@ export default function Home() {
       if (current) URL.revokeObjectURL(current);
       return nextPreview;
     });
+    setAnalysisResult(null);
 
     setIsAnalyzing(true);
     setLastUpdated("Assessing image…");
@@ -256,10 +279,20 @@ export default function Home() {
         apiResult = {};
       }
 
-      const predicted =
-        apiResult.key ?? apiResult.fallback?.key ?? localVisual ?? "good";
+      const predicted = apiResult.key ?? apiResult.fallback?.key ?? localVisual ?? "good";
+      const nextBase = scenarios[predicted];
+      const needsReview = apiResult.needsReview ?? apiResult.fallback?.needsReview ?? false;
+      const confidence = apiResult.confidence ?? apiResult.confidencePercent ?? apiResult.fallback?.confidence;
 
       setSelected(predicted);
+      setAnalysisResult({
+        label: needsReview ? "Needs review" : apiResult.label ?? nextBase.label,
+        confidence: typeof confidence === "number" ? Math.round(confidence) : nextBase.confidence,
+        risk: needsReview ? "Needs review" : (apiResult.risk as Risk | undefined) ?? (apiResult.fallback?.risk as Risk | undefined) ?? nextBase.risk,
+        action: needsReview ? "Needs review" : apiResult.action ?? apiResult.fallback?.action ?? nextBase.action,
+        detail: apiResult.detail ?? apiResult.fallback?.detail ?? nextBase.detail,
+        needsReview,
+      });
       setLastUpdated(
         response.ok ? "Assessment completed" : "Preview assessment completed"
       );
@@ -481,6 +514,7 @@ export default function Home() {
                           type="button"
                           onClick={() => {
                             setSelected(key);
+                            setAnalysisResult(null);
                             setLastUpdated("Sample condition selected");
                           }}
                           className={`rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition hover:-translate-y-0.5 ${
@@ -526,7 +560,7 @@ export default function Home() {
                 >
                   {isAnalyzing ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : result.risk === "High" ? (
+                  ) : result.needsReview || result.risk === "High" ? (
                     <AlertTriangle className="h-6 w-6" />
                   ) : (
                     <CheckCircle2 className="h-6 w-6" />
@@ -538,7 +572,7 @@ export default function Home() {
                 <span
                   className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-semibold ${tones.chip}`}
                 >
-                  {result.risk} risk
+                  {result.needsReview ? "Needs review" : `${result.risk} risk`}
                 </span>
 
                 <span className="inline-flex items-center rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-semibold text-ink">

@@ -1,0 +1,22 @@
+{
+  "model_backbone": "mobilenetv3_large_100",
+  "pretraining": "ImageNet pretrained via timm",
+  "input_image_size": 320,
+  "classes": [
+    "good",
+    "broken",
+    "impurity",
+    "mold_risk"
+  ],
+  "loss": "cross_entropy",
+  "label_smoothing": 0.0,
+  "optimizer": "AdamW",
+  "lr_head": 0.0005,
+  "lr_finetune": 1.5e-05,
+  "weight_decay": 0.0003,
+  "official_evaluation": "raw argmax, single image pass, no threshold post-processing",
+  "deployment_safety_rule": {
+    "needs_review_confidence_below": 0.65,
+    "needs_review_top2_margin_below": 0.15
+  }
+}

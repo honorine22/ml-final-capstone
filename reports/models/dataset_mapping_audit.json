@@ -1,0 +1,35 @@
+{
+  "use_weighted_sampler": false,
+  "mold_min_precision_target": 0.75,
+  "strict_maize_only": true,
+  "use_ck_cnn_only_for_final_metrics": true,
+  "use_grainset_tiny_for_training": false,
+  "allow_numeric_folder_labels": false,
+  "sources_used": [
+    "CK-CNN"
+  ],
+  "counts_after_balanced_cap": {
+    "good": 120,
+    "mold_risk": 60,
+    "broken": 60,
+    "impurity": 50
+  },
+  "train_counts": {
+    "good": 84,
+    "broken": 84,
+    "mold_risk": 42,
+    "impurity": 35
+  },
+  "val_counts": {
+    "good": 18,
+    "broken": 9,
+    "mold_risk": 9,
+    "impurity": 7
+  },
+  "test_counts": {
+    "good": 18,
+    "mold_risk": 9,
+    "broken": 9,
+    "impurity": 8
+  }
+}

@@ -6,9 +6,12 @@ type QualityKey = "good" | "broken" | "impurity" | "discolored" | "mold";
 
 type ModelApiResponse = {
   label: string;
+  raw_label?: string;
   confidence: number;
   confidence_percent?: number;
   confidencePercent?: number;
+  needs_review?: boolean;
+  needsReview?: boolean;
   probabilities?: Record<string, number>;
   risk: string;
   action: string;
@@ -22,6 +25,7 @@ const rules = [
     key: "mold",
     label: "Visible mold-risk grain",
     confidence: 91,
+    needsReview: false,
     risk: "High",
     action: "Do not store; refer to cooperative facility",
     detail: "Visible mold risk requires careful handling and professional quality checks."
@@ -31,6 +35,7 @@ const rules = [
     key: "broken",
     label: "Broken or damaged grain",
     confidence: 87,
+    needsReview: false,
     risk: "Medium",
     action: "Sort before storage",
     detail: "Remove visibly damaged kernels to reduce buyer rejection and storage risk."
@@ -40,6 +45,7 @@ const rules = [
     key: "impurity",
     label: "Impurity-contaminated grain",
     confidence: 89,
+    needsReview: false,
     risk: "Medium",
     action: "Clean and re-screen",
     detail: "Separate stones, husks, dust, and foreign matter before aggregation."
@@ -49,6 +55,7 @@ const rules = [
     key: "discolored",
     label: "Discolored grain",
     confidence: 82,
+    needsReview: false,
     risk: "Medium",
     action: "Sell quickly or refer for review",
     detail: "Discoloration can reduce quality grade; avoid mixing with clean grain."
@@ -81,6 +88,7 @@ function fallbackPrediction(file: File | null) {
     key: "discolored",
     label: "Needs quality review",
     confidence: 71,
+    needsReview: true,
     risk: "Medium",
     action: "Do not mark as good; inspect or refer",
     detail: "The model API is not connected yet, so this sample should be reviewed before storage or sale."
@@ -132,16 +140,19 @@ export async function POST(request: Request) {
     const result = (await response.json()) as ModelApiResponse;
     const key = normalizeLabel(result.label);
     const confidencePercent = result.confidence_percent ?? result.confidencePercent ?? result.confidence * 100;
+    const needsReview = result.needs_review ?? result.needsReview ?? false;
 
     return NextResponse.json({
       key,
       label: result.label,
+      rawLabel: result.raw_label ?? result.label,
       confidence: Math.round(confidencePercent),
       confidenceRaw: result.confidence,
       confidencePercent,
+      needsReview,
       probabilities: result.probabilities ?? {},
-      risk: result.risk,
-      action: result.action,
+      risk: needsReview ? "Needs review" : result.risk,
+      action: needsReview ? "Needs review" : result.action,
       detail: result.recommendation ?? result.detail ?? "",
       source: "model-api"
     });

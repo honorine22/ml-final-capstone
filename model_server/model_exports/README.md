@@ -1,11 +1,12 @@
 # Model Exports
 
-Put the files downloaded from Kaggle here:
+The FastAPI PyTorch server loads the final Kaggle-trained model from this folder.
 
-For the latest PyTorch notebook:
+Required files:
 
 - `maizeguard_public_best_model.pt`
 - `maizeguard_model_metadata.json`
+- `class_names.json`
 
 Run with:
 
@@ -13,7 +14,7 @@ Run with:
 uvicorn pytorch_main:app --reload --port 8000
 ```
 
-For the older TensorFlow/Keras path:
+The older TensorFlow/Keras API path can still use this folder for:
 
 - `maizeguard_model.keras`
 - `class_names.json`

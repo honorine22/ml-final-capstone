@@ -9,11 +9,13 @@ npm-debug.log*
 __pycache__
 *.pyc
 data/raw
-reports/models
+reports/models/*.keras
+reports/models/*.h5
+reports/models/*.onnx
+reports/models/*_best.pt
 *.pkl
 model_server/model_exports/*.keras
 model_server/model_exports/*.h5
-model_server/model_exports/*.pt
 model_server/model_exports/*.onnx
 model_server/model_exports/saved_model
 reports/public_training/*.pt
