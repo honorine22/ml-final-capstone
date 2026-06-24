@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "capstone:check": "python scripts/check_capstone_ready.py"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

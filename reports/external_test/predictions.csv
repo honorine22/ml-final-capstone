@@ -1,0 +1,69 @@
+file,source,expected,predicted,confidence,needs_review,review_reason,prob_good,prob_broken,prob_impurity,prob_mold_risk
+ckcnn_sanity/broken/ckcnn_broken_0005.png,ckcnn_sanity,broken,broken,0.992622,False,,2.4e-05,0.992622,1.3e-05,0.007341
+ckcnn_sanity/broken/ckcnn_broken_0006.png,ckcnn_sanity,broken,broken,0.999717,False,,1e-06,0.999717,5e-06,0.000277
+ckcnn_sanity/broken/ckcnn_broken_0027.png,ckcnn_sanity,broken,broken,0.918375,False,,0.01315,0.918375,0.0,0.068475
+ckcnn_sanity/broken/ckcnn_broken_0029.png,ckcnn_sanity,broken,mold_risk,0.728293,False,,0.203438,0.068269,0.0,0.728293
+ckcnn_sanity/broken/ckcnn_broken_0034.png,ckcnn_sanity,broken,broken,0.998839,False,,4e-06,0.998839,0.001102,5.6e-05
+ckcnn_sanity/broken/ckcnn_broken_0037.png,ckcnn_sanity,broken,broken,0.905277,False,,0.003341,0.905277,4e-06,0.091378
+ckcnn_sanity/broken/ckcnn_broken_0039.png,ckcnn_sanity,broken,broken,0.586729,True,,0.250791,0.586729,0.0,0.16248
+ckcnn_sanity/broken/ckcnn_broken_0040.png,ckcnn_sanity,broken,broken,0.979493,False,,0.01355,0.979493,0.0,0.006958
+ckcnn_sanity/broken/ckcnn_broken_0048.png,ckcnn_sanity,broken,broken,0.971257,False,,4e-05,0.971257,1.5e-05,0.028687
+ckcnn_sanity/good/ckcnn_good_0027.png,ckcnn_sanity,good,good,0.450234,True,,0.450234,0.409801,0.0,0.139965
+ckcnn_sanity/good/ckcnn_good_0031.png,ckcnn_sanity,good,good,0.413442,True,,0.413442,0.287746,0.0,0.298812
+ckcnn_sanity/good/ckcnn_good_0033.png,ckcnn_sanity,good,good,0.99783,False,,0.99783,0.001286,0.0,0.000884
+ckcnn_sanity/good/ckcnn_good_0053.png,ckcnn_sanity,good,good,0.898964,False,,0.898964,0.026816,0.0,0.074219
+ckcnn_sanity/good/ckcnn_good_0058.png,ckcnn_sanity,good,good,0.993475,False,,0.993475,0.001357,0.0,0.005169
+ckcnn_sanity/good/ckcnn_good_0065.png,ckcnn_sanity,good,good,0.755991,False,,0.755991,0.003639,0.0,0.24037
+ckcnn_sanity/good/ckcnn_good_0066.png,ckcnn_sanity,good,good,0.996327,False,,0.996327,0.00163,0.0,0.002043
+ckcnn_sanity/good/ckcnn_good_0068.png,ckcnn_sanity,good,good,0.999462,False,,0.999462,0.000201,0.0,0.000337
+ckcnn_sanity/good/ckcnn_good_0085.png,ckcnn_sanity,good,good,0.993569,False,,0.993569,0.00052,0.0,0.005911
+ckcnn_sanity/good/ckcnn_good_0093.png,ckcnn_sanity,good,good,0.869418,False,,0.869418,0.002545,0.0,0.128037
+ckcnn_sanity/good/ckcnn_good_0099.png,ckcnn_sanity,good,good,0.974746,False,,0.974746,0.001533,0.0,0.023721
+ckcnn_sanity/good/ckcnn_good_0100.png,ckcnn_sanity,good,good,0.992609,False,,0.992609,0.000172,0.0,0.007219
+ckcnn_sanity/good/ckcnn_good_0101.png,ckcnn_sanity,good,good,0.999827,False,,0.999827,3.6e-05,0.0,0.000137
+ckcnn_sanity/good/ckcnn_good_0109.png,ckcnn_sanity,good,good,0.997886,False,,0.997886,0.001665,0.0,0.000449
+ckcnn_sanity/good/ckcnn_good_0110.png,ckcnn_sanity,good,good,0.99635,False,,0.99635,0.002787,0.0,0.000863
+ckcnn_sanity/good/ckcnn_good_0111.png,ckcnn_sanity,good,good,0.997589,False,,0.997589,0.00158,0.0,0.000831
+ckcnn_sanity/good/ckcnn_good_0112.png,ckcnn_sanity,good,good,0.974157,False,,0.974157,0.000915,0.0,0.024928
+ckcnn_sanity/good/ckcnn_good_0117.png,ckcnn_sanity,good,good,0.998513,False,,0.998513,0.000956,0.0,0.000531
+ckcnn_sanity/impurity/ckcnn_impurity_0011.png,ckcnn_sanity,impurity,impurity,0.997442,False,,0.0,0.002558,0.997442,1e-06
+ckcnn_sanity/impurity/ckcnn_impurity_0013.png,ckcnn_sanity,impurity,impurity,0.999999,False,,0.0,1e-06,0.999999,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0020.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0028.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0033.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0034.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0035.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/impurity/ckcnn_impurity_0049.png,ckcnn_sanity,impurity,impurity,1.0,False,,0.0,0.0,1.0,0.0
+ckcnn_sanity/mold_risk/ckcnn_rotten_0008.png,ckcnn_sanity,mold_risk,mold_risk,0.999926,False,,6e-06,6.7e-05,0.0,0.999926
+ckcnn_sanity/mold_risk/ckcnn_rotten_0011.png,ckcnn_sanity,mold_risk,mold_risk,0.999997,False,,0.0,3e-06,0.0,0.999997
+ckcnn_sanity/mold_risk/ckcnn_rotten_0012.png,ckcnn_sanity,mold_risk,mold_risk,0.982983,False,,0.0015,0.015517,0.0,0.982983
+ckcnn_sanity/mold_risk/ckcnn_rotten_0030.png,ckcnn_sanity,mold_risk,mold_risk,0.966367,False,,0.000334,0.0333,0.0,0.966367
+ckcnn_sanity/mold_risk/ckcnn_rotten_0036.png,ckcnn_sanity,mold_risk,mold_risk,0.999395,False,,4.8e-05,0.000557,0.0,0.999395
+ckcnn_sanity/mold_risk/ckcnn_rotten_0039.png,ckcnn_sanity,mold_risk,mold_risk,0.968437,False,,1.1e-05,0.031551,0.0,0.968437
+ckcnn_sanity/mold_risk/ckcnn_rotten_0040.png,ckcnn_sanity,mold_risk,mold_risk,0.99381,False,,0.0,0.00619,0.0,0.99381
+ckcnn_sanity/mold_risk/ckcnn_rotten_0050.png,ckcnn_sanity,mold_risk,mold_risk,0.999865,False,,6.8e-05,6.7e-05,0.0,0.999865
+ckcnn_sanity/mold_risk/ckcnn_rotten_0053.png,ckcnn_sanity,mold_risk,mold_risk,0.999415,False,,0.000252,0.000333,0.0,0.999415
+efficientmaize/bad_unresolved/bad_unresolved_01.jpg,efficientmaize,needs_manual_review,broken,0.906773,True,Image resolution is too small (101x101). Upload a clear batch photo at least 160 pixels on each side.,0.047003,0.906773,0.010833,0.03539
+efficientmaize/bad_unresolved/bad_unresolved_02.jpg,efficientmaize,needs_manual_review,broken,0.650745,False,,0.262826,0.650745,0.016466,0.069964
+efficientmaize/bad_unresolved/bad_unresolved_03.jpg,efficientmaize,needs_manual_review,impurity,0.668875,True,Image resolution is too small (76x76). Upload a clear batch photo at least 160 pixels on each side.,0.05821,0.271811,0.668875,0.001104
+efficientmaize/bad_unresolved/bad_unresolved_04.jpg,efficientmaize,needs_manual_review,broken,0.677551,True,Image resolution is too small (104x104). Upload a clear batch photo at least 160 pixels on each side.,0.07571,0.677551,0.245752,0.000987
+efficientmaize/bad_unresolved/bad_unresolved_05.jpg,efficientmaize,needs_manual_review,impurity,0.623538,True,Image resolution is too small (93x93). Upload a clear batch photo at least 160 pixels on each side.,0.042853,0.331023,0.623538,0.002586
+efficientmaize/bad_unresolved/bad_unresolved_06.jpg,efficientmaize,needs_manual_review,impurity,0.749029,True,Image resolution is too small (80x80). Upload a clear batch photo at least 160 pixels on each side.,0.002633,0.247462,0.749029,0.000876
+efficientmaize/bad_unresolved/bad_unresolved_07.jpg,efficientmaize,needs_manual_review,impurity,0.518431,True,Image resolution is too small (64x64). Upload a clear batch photo at least 160 pixels on each side.,0.062319,0.376535,0.518431,0.042715
+efficientmaize/bad_unresolved/bad_unresolved_08.jpg,efficientmaize,needs_manual_review,impurity,0.416158,True,Image resolution is too small (126x126). Upload a clear batch photo at least 160 pixels on each side.,0.22102,0.286953,0.416158,0.075869
+efficientmaize/bad_unresolved/bad_unresolved_09.jpg,efficientmaize,needs_manual_review,broken,0.956472,True,Image resolution is too small (96x96). Upload a clear batch photo at least 160 pixels on each side.,0.013966,0.956472,0.01152,0.018042
+efficientmaize/bad_unresolved/bad_unresolved_10.jpg,efficientmaize,needs_manual_review,impurity,0.629645,True,Image resolution is too small (63x63). Upload a clear batch photo at least 160 pixels on each side.,0.232042,0.135189,0.629645,0.003125
+efficientmaize/bad_unresolved/bad_unresolved_11.jpg,efficientmaize,needs_manual_review,broken,0.468943,True,Image resolution is too small (52x52). Upload a clear batch photo at least 160 pixels on each side.,0.098796,0.468943,0.428871,0.00339
+efficientmaize/bad_unresolved/bad_unresolved_12.jpg,efficientmaize,needs_manual_review,impurity,0.814066,True,Image resolution is too small (65x65). Upload a clear batch photo at least 160 pixels on each side.,0.084228,0.084038,0.814066,0.017667
+efficientmaize/good/good_01.jpg,efficientmaize,good,impurity,0.958346,True,Image resolution is too small (51x51). Upload a clear batch photo at least 160 pixels on each side.,0.002818,0.038589,0.958346,0.000246
+efficientmaize/good/good_02.jpg,efficientmaize,good,broken,0.762759,True,Image resolution is too small (73x73). Upload a clear batch photo at least 160 pixels on each side.,0.026625,0.762759,0.205346,0.00527
+efficientmaize/good/good_03.jpg,efficientmaize,good,good,0.871837,True,Image resolution is too small (153x153). Upload a clear batch photo at least 160 pixels on each side.,0.871837,0.046868,0.06306,0.018235
+efficientmaize/good/good_04.jpg,efficientmaize,good,impurity,0.894156,True,Image resolution is too small (56x56). Upload a clear batch photo at least 160 pixels on each side.,0.019672,0.083269,0.894156,0.002904
+efficientmaize/good/good_05.jpg,efficientmaize,good,impurity,0.74488,True,Image resolution is too small (64x64). Upload a clear batch photo at least 160 pixels on each side.,0.022063,0.232899,0.74488,0.000158
+efficientmaize/good/good_06.jpg,efficientmaize,good,impurity,0.876931,True,Image resolution is too small (63x63). Upload a clear batch photo at least 160 pixels on each side.,0.002811,0.118689,0.876931,0.001569
+efficientmaize/good/good_07.jpg,efficientmaize,good,broken,0.505417,True,Image resolution is too small (70x70). Upload a clear batch photo at least 160 pixels on each side.,0.044864,0.505417,0.441196,0.008524
+efficientmaize/good/good_08.jpg,efficientmaize,good,impurity,0.866877,True,Image resolution is too small (47x47). Upload a clear batch photo at least 160 pixels on each side.,0.002546,0.130486,0.866877,9.1e-05
+efficientmaize/good/good_09.jpg,efficientmaize,good,impurity,0.825544,True,Image resolution is too small (76x76). Upload a clear batch photo at least 160 pixels on each side.,0.066399,0.09753,0.825544,0.010527
+efficientmaize/good/good_10.jpg,efficientmaize,good,broken,0.8217,True,Image resolution is too small (76x76). Upload a clear batch photo at least 160 pixels on each side.,0.127356,0.8217,0.03494,0.016005
+efficientmaize/good/good_11.jpg,efficientmaize,good,impurity,0.559288,True,Image resolution is too small (58x58). Upload a clear batch photo at least 160 pixels on each side.,0.014684,0.425808,0.559288,0.000221
+efficientmaize/good/good_12.jpg,efficientmaize,good,impurity,0.959581,True,Image resolution is too small (71x71). Upload a clear batch photo at least 160 pixels on each side.,0.012542,0.02769,0.959581,0.000188

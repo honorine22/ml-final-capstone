@@ -1,5 +1,6 @@
 .next
 node_modules
+.venv
 out
 dist
 .env
@@ -9,6 +10,7 @@ npm-debug.log*
 __pycache__
 *.pyc
 data/raw
+data/processed
 reports/models/*.keras
 reports/models/*.h5
 reports/models/*.onnx

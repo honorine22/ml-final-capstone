@@ -1,16 +1,17 @@
 {
-  "label": "good",
-  "raw_label": "good",
-  "confidence": 0.988,
-  "confidence_percent": 98.8,
-  "needs_review": false,
+  "label": "impurity",
+  "raw_label": "impurity",
+  "confidence": 0.5588,
+  "confidence_percent": 55.88,
+  "needs_review": true,
+  "review_reason": null,
   "probabilities": {
-    "good": 0.988,
-    "broken": 0.004,
-    "impurity": 0.002,
-    "mold_risk": 0.006
+    "good": 0.0002,
+    "broken": 0.4394,
+    "impurity": 0.5588,
+    "mold_risk": 0.0016
   },
-  "risk": "Low",
-  "action": "Store safely or prepare for sale",
-  "recommendation": "The maize appears clean. Store in a dry place and monitor normally."
+  "risk": "Needs review",
+  "action": "Needs review",
+  "recommendation": "Retake the photo closer to the maize sample on a clear surface."
 }

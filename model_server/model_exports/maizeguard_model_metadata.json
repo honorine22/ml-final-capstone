@@ -17,6 +17,11 @@
   "official_evaluation": "raw argmax, single image pass, no threshold post-processing",
   "deployment_safety_rule": {
     "needs_review_confidence_below": 0.65,
-    "needs_review_top2_margin_below": 0.15
-  }
+    "needs_review_top2_margin_below": 0.15,
+    "mixed_risk_review_threshold": 0.55
+  },
+  "training_only_synthetic_augmentation": true,
+  "synthetic_broken_multiplier": 2,
+  "selected_device": "cpu",
+  "cuda_usable": false
 }

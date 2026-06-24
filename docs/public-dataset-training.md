@@ -57,8 +57,8 @@ It contains the full ML process:
 - model comparison with PyTorch/timm
 - test metrics
 - confusion matrix
-- multi-crop prediction
-- conservative recommendation rule
+- full-image deployment prediction
+- `needs_review` safety rule
 - export for API use
 
 ## Local Script Version
@@ -109,7 +109,7 @@ python scripts/train_pytorch_public.py \
   --force-cpu
 ```
 
-The training script also includes:
+The training script includes:
 
 - CUDA smoke test with automatic CPU fallback
 - capped class weights
@@ -120,7 +120,7 @@ The training script also includes:
 - validation macro F1 model selection
 - saved `test_predictions_and_errors.csv`
 
-The script compares:
+The optional training script can compare:
 
 - `mobilenetv3_large_100`
 - `tf_efficientnetv2_b0`

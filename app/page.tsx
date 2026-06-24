@@ -25,26 +25,22 @@ import {
   WifiOff,
 } from "lucide-react";
 
-type QualityKey = "good" | "broken" | "impurity" | "discolored" | "mold";
+type QualityKey = "good" | "broken" | "impurity" | "mold";
 type Risk = "Low" | "Medium" | "High" | "Needs review";
 
 type AnalyzeResponse = {
   key?: QualityKey;
   label?: string;
+  rawLabel?: string;
   confidence?: number;
+  confidenceRaw?: number;
   confidencePercent?: number;
   needsReview?: boolean;
+  probabilities?: Record<string, number>;
   risk?: Risk | string;
   action?: string;
   detail?: string;
-  fallback?: {
-    key?: QualityKey;
-    confidence?: number;
-    needsReview?: boolean;
-    risk?: Risk | string;
-    action?: string;
-    detail?: string;
-  };
+  source?: string;
 };
 
 type Scenario = {
@@ -60,6 +56,9 @@ type Scenario = {
 
 type DisplayResult = Scenario & {
   needsReview?: boolean;
+  rawLabel?: string;
+  probabilities?: Record<string, number>;
+  source?: string;
 };
 
 const scenarios: Record<QualityKey, Scenario> = {
@@ -99,18 +98,6 @@ const scenarios: Record<QualityKey, Scenario> = {
       "Impurity evidence is prioritized because foreign matter reduces batch value.",
     tone: "warning",
   },
-  discolored: {
-    label: "Discolored grain",
-    shortLabel: "Discolored",
-    confidence: 82,
-    risk: "Medium",
-    action: "Sell quickly or refer for review",
-    detail:
-      "Discoloration may lower the quality grade; avoid mixing with clean grain.",
-    priority:
-      "Discolored patches are a warning sign before a batch is called good.",
-    tone: "warning",
-  },
   mold: {
     label: "Visible mold-risk grain",
     shortLabel: "Mold risk",
@@ -148,7 +135,7 @@ const history = [
 
 const metrics = [
   { label: "Public sources", value: "3" },
-  { label: "Classes mapped", value: "5" },
+  { label: "Classes mapped", value: "4" },
   { label: "Training stack", value: "PyTorch" },
   { label: "API route", value: "Ready" },
 ];
@@ -188,7 +175,6 @@ const priorityRules: { label: string; tone: string }[] = [
   { label: "Mold", tone: "bg-danger text-white" },
   { label: "Impurity", tone: "bg-primary text-primary-foreground" },
   { label: "Broken", tone: "bg-warning text-white" },
-  { label: "Discolored", tone: "bg-clay text-white" },
   { label: "Good", tone: "bg-success text-white" },
 ];
 
@@ -219,8 +205,23 @@ function toneClasses(tone: Scenario["tone"]) {
   };
 }
 
+function formatModelLabel(label?: string) {
+  if (!label) return "Not available";
+  return label.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function topProbabilities(probabilities?: Record<string, number>) {
+  return Object.entries(probabilities ?? {})
+    .sort(([, left], [, right]) => right - left)
+    .slice(0, 4)
+    .map(([label, value]) => ({
+      label,
+      percent: Math.round(value * 100),
+    }));
+}
+
 export default function Home() {
-  const [selected, setSelected] = useState<QualityKey>("good");
+  const [selected, setSelected] = useState<QualityKey | null>("good");
   const [fileName, setFileName] = useState("sample-maize-batch.jpg");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -228,7 +229,7 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<Partial<DisplayResult> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const baseResult = scenarios[selected];
+  const baseResult = scenarios[selected ?? "good"];
   const result: DisplayResult = {
     ...baseResult,
     ...analysisResult,
@@ -256,11 +257,10 @@ export default function Home() {
       return nextPreview;
     });
     setAnalysisResult(null);
+    setSelected(null);
 
     setIsAnalyzing(true);
     setLastUpdated("Assessing image…");
-
-    const localVisual = await classifyImageAppearance(nextPreview);
 
     try {
       const formData = new FormData();
@@ -279,26 +279,53 @@ export default function Home() {
         apiResult = {};
       }
 
-      const predicted = apiResult.key ?? apiResult.fallback?.key ?? localVisual ?? "good";
+      if (!response.ok || !apiResult.key) {
+        setSelected(null);
+        setAnalysisResult({
+          label: "Needs review",
+          confidence: 0,
+          risk: "Needs review",
+          action: "Model unavailable",
+          detail: apiResult.detail ?? "Start the model API and upload the image again.",
+          needsReview: true,
+          tone: "warning",
+        });
+        setLastUpdated("Model API unavailable");
+        return;
+      }
+
+      const predicted = apiResult.key;
       const nextBase = scenarios[predicted];
-      const needsReview = apiResult.needsReview ?? apiResult.fallback?.needsReview ?? false;
-      const confidence = apiResult.confidence ?? apiResult.confidencePercent ?? apiResult.fallback?.confidence;
+      const needsReview = apiResult.needsReview ?? false;
+      const confidence = apiResult.confidence ?? apiResult.confidencePercent;
 
       setSelected(predicted);
       setAnalysisResult({
         label: needsReview ? "Needs review" : apiResult.label ?? nextBase.label,
         confidence: typeof confidence === "number" ? Math.round(confidence) : nextBase.confidence,
-        risk: needsReview ? "Needs review" : (apiResult.risk as Risk | undefined) ?? (apiResult.fallback?.risk as Risk | undefined) ?? nextBase.risk,
-        action: needsReview ? "Needs review" : apiResult.action ?? apiResult.fallback?.action ?? nextBase.action,
-        detail: apiResult.detail ?? apiResult.fallback?.detail ?? nextBase.detail,
+        risk: needsReview ? "Needs review" : (apiResult.risk as Risk | undefined) ?? nextBase.risk,
+        action: needsReview ? "Needs review" : apiResult.action ?? nextBase.action,
+        detail: apiResult.detail ?? nextBase.detail,
         needsReview,
+        rawLabel: apiResult.rawLabel ?? apiResult.label,
+        probabilities: apiResult.probabilities,
+        source: apiResult.source,
       });
       setLastUpdated(
         response.ok ? "Assessment completed" : "Preview assessment completed"
       );
     } catch {
-      setSelected(localVisual ?? "good");
-      setLastUpdated("Preview assessment completed");
+      setSelected(null);
+      setAnalysisResult({
+        label: "Needs review",
+        confidence: 0,
+        risk: "Needs review",
+        action: "Needs review",
+        detail: "The model API is not reachable. Start the backend server and try again.",
+        needsReview: true,
+        tone: "warning",
+      });
+      setLastUpdated("Model API unavailable");
     } finally {
       setIsAnalyzing(false);
     }
@@ -462,13 +489,19 @@ export default function Home() {
                 </button>
               </div>
 
-              <label className="group mt-6 flex min-h-[22rem] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-surface-2 px-5 py-6 text-center transition hover:border-primary/50 hover:bg-surface-3/70">
+              <label className="group mt-6 flex min-h-[22rem] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-border bg-surface-2 p-4 text-center transition hover:border-primary/50 hover:bg-surface-3/70 sm:p-5">
                 {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="Selected maize batch preview"
-                    className="h-72 w-full rounded-xl object-cover shadow-sm"
-                  />
+                  <div className="relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2 shadow-sm">
+                    <img
+                      src={previewUrl}
+                      alt="Complete selected maize batch"
+                      className="block max-h-[32rem] w-full object-contain"
+                    />
+                    <span className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-lg border border-border bg-white/95 px-3 py-2 text-xs font-semibold text-primary shadow-sm backdrop-blur">
+                      <Camera className="h-4 w-4" />
+                      Replace photo
+                    </span>
+                  </div>
                 ) : (
                   <span className="grid h-20 w-20 place-items-center rounded-2xl bg-primary text-white shadow-sm transition group-hover:-translate-y-1">
                     <Upload className="h-8 w-8" />
@@ -483,7 +516,9 @@ export default function Home() {
                 <span className="mt-2 max-w-sm text-sm leading-6 text-ink-soft">
                   {isAnalyzing
                     ? "Checking the uploaded image…"
-                    : "Upload a close image to classify visible quality signs."}
+                    : previewUrl
+                      ? "The complete photo shown above is sent for assessment."
+                      : "Upload a close image to classify visible quality signs."}
                 </span>
 
                 <input
@@ -610,6 +645,56 @@ export default function Home() {
                 <p className="mt-2 text-sm leading-6 text-ink-soft">
                   {result.detail}
                 </p>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-border bg-white p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
+                      Model evidence
+                    </p>
+                    <p className="mt-1.5 text-sm leading-6 text-ink-soft">
+                      Top prediction:{" "}
+                      <span className="font-semibold text-ink">
+                        {formatModelLabel(result.rawLabel ?? result.label)}
+                      </span>
+                      {result.needsReview
+                        ? ". The safety layer is asking for review before giving a final decision."
+                        : ". The recommendation is based on this model output."}
+                    </p>
+                  </div>
+
+                  <span className="rounded-full border border-border bg-surface-2 px-3 py-1.5 text-xs font-semibold text-ink-soft">
+                    {result.source === "model-api" ? "Live API" : "Demo state"}
+                  </span>
+                </div>
+
+                {topProbabilities(result.probabilities).length > 0 ? (
+                  <div className="mt-4 space-y-3">
+                    {topProbabilities(result.probabilities).map((item) => (
+                      <div key={item.label}>
+                        <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                          <span className="font-semibold text-ink">
+                            {formatModelLabel(item.label)}
+                          </span>
+                          <span className="font-medium text-ink-soft">
+                            {item.percent}%
+                          </span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${item.percent}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm leading-6 text-ink-soft">
+                    Upload a photo to show class probabilities from the model API.
+                  </p>
+                )}
               </div>
 
               <div className="mt-4 rounded-2xl border border-border bg-surface-2/70 p-5">
@@ -855,83 +940,4 @@ function Step({
       <p className="mt-1 text-xs leading-5 text-ink-soft">{text}</p>
     </div>
   );
-}
-
-function classifyImageAppearance(src: string): Promise<QualityKey | null> {
-  return new Promise((resolve) => {
-    const image = new Image();
-
-    image.onload = () => {
-      const canvas = document.createElement("canvas");
-      const size = 72;
-      canvas.width = size;
-      canvas.height = size;
-
-      const context = canvas.getContext("2d", {
-        willReadFrequently: true,
-      });
-
-      if (!context) {
-        resolve(null);
-        return;
-      }
-
-      context.drawImage(image, 0, 0, size, size);
-
-      const pixels = context.getImageData(0, 0, size, size).data;
-
-      let dark = 0;
-      let yellow = 0;
-      let redBrown = 0;
-      let blueBlack = 0;
-      let veryLight = 0;
-
-      const total = pixels.length / 4;
-
-      for (let index = 0; index < pixels.length; index += 4) {
-        const red = pixels[index];
-        const green = pixels[index + 1];
-        const blue = pixels[index + 2];
-        const lightness = (red + green + blue) / 3;
-
-        if (lightness < 64) dark += 1;
-        if (lightness > 218) veryLight += 1;
-        if (red > 115 && green > 85 && blue < 120 && red >= green * 0.82) {
-          yellow += 1;
-        }
-        if (red > 75 && green < 115 && blue < 95 && red > blue * 1.25) {
-          redBrown += 1;
-        }
-        if (blue > red * 1.1 && blue > green * 1.05 && lightness < 130) {
-          blueBlack += 1;
-        }
-      }
-
-      const darkRatio = dark / total;
-      const yellowRatio = yellow / total;
-      const redBrownRatio = redBrown / total;
-      const blueBlackRatio = blueBlack / total;
-      const veryLightRatio = veryLight / total;
-
-      if (darkRatio > 0.28 || blueBlackRatio > 0.08) {
-        resolve("mold");
-        return;
-      }
-
-      if (redBrownRatio > 0.12 || yellowRatio < 0.32 || veryLightRatio > 0.22) {
-        resolve("discolored");
-        return;
-      }
-
-      if (yellowRatio > 0.55) {
-        resolve("good");
-        return;
-      }
-
-      resolve("broken");
-    };
-
-    image.onerror = () => resolve(null);
-    image.src = src;
-  });
 }

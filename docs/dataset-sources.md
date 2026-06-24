@@ -1,86 +1,62 @@
-# Dataset Sources for MaizeGuard Rwanda
+# Dataset Sources
 
-These are the dataset sources that match the original capstone description and literature review.
+The final MaizeGuard model uses public maize/corn kernel data for training and separate external images for validation.
 
-## 1. EfficientMaize
+## Current Classes
 
-- Dataset page: https://data.mendeley.com/datasets/r6vvm5jkh6/2
-- Article page: https://www.sciencedirect.com/science/article/pii/S2352340924002300
-- DOI: `10.17632/r6vvm5jkh6.2`
-- License: CC BY 4.0
-- Best use: first good-vs-bad maize classifier.
-- Classes: `good`, `bad`
-- Size: 4,846 raw images and 28,910 augmented images.
-- Notes: images were captured using a 12MP phone camera and labeled by seed experts.
+- `good`
+- `broken`
+- `impurity`
+- `mold_risk`
 
-Recommended mapping:
+`mold_risk` means visible quality risk only. It is not a laboratory aflatoxin result.
 
-```text
-good -> good
-bad  -> discolored / damaged / review-needed
-```
+## Main Public Sources
 
-## 2. GrainSet Maize
+## CK-CNN / Deep Learning Based Corn Kernel Classification
 
-- Project page: https://grainnet.github.io/GrainSet.html
-- Code and dataset links: https://github.com/hellodfan/GrainSet
-- Maize Figshare DOI: https://doi.org/10.6084/m9.figshare.22987562.v2
-- Paper DOI: https://doi.org/10.1038/s41597-023-02660-8
-- License note: the project page lists Creative Commons BY-NC-SA 4.0 for non-commercial use.
-- Best use: multi-class maize kernel quality classifier.
-- Size: maize subset has about 19K single-kernel images.
-- Labels include normal kernels, damage/unsound categories, and impurities.
-
-Recommended mapping:
-
-```text
-normal       -> good
-DU/damaged   -> broken or discolored
-impurities   -> impurity
-```
-
-## 3. Deep Learning Based Corn Kernel Classification / CK-CNN
-
-- Dataset page: https://www.cidis.espol.edu.ec/es/content/dataset-deep-learning-based-corn-kernel-classification
-- GitHub dataset: https://github.com/vision-cidis/CK-CNN/tree/master/dataset
-- Paper page: https://openaccess.thecvf.com/content_CVPRW_2020/html/w5/Velesaca_Deep_Learning_Based_Corn_Kernel_Classification_CVPRW_2020_paper.html
-- Best use: good, defective, and impurity classifier support.
-- Classification dataset: 6,600 images for 3 classes at 224x224.
-- Classes: good corn kernel, defective corn kernel, impurity.
-
-Recommended mapping:
+- GitHub: https://github.com/vision-cidis/CK-CNN
+- Best use: main supervised public source
+- Mapping:
 
 ```text
 good      -> good
-defective -> broken / damaged
+defective -> broken
 impurity  -> impurity
+rotten    -> mold_risk, only where clearly labeled
 ```
 
-## Recommended Training Strategy
+## EfficientMaize
 
-1. Use EfficientMaize first for binary `good` vs `not_good`.
-2. Add CK-CNN to separate `good`, `broken/damaged`, and `impurity`.
-3. Add GrainSet maize to strengthen `normal`, `damaged/unsound`, and `impurity` recognition.
-4. Collect a small local Rwanda validation set for images like mixed-color maize cobs, phone photos, poor lighting, and market samples.
-5. Keep `mold-risk` conservative unless you have clear labeled mold images. If the model is unsure, show `Needs quality review` instead of `Good`.
+- Dataset: https://data.mendeley.com/datasets/r6vvm5jkh6/2
+- DOI: `10.17632/r6vvm5jkh6.2`
+- License: CC BY 4.0
+- Best use: external/domain-shift test data and possible future support
 
-## Folder Preparation
+The broad `bad` label should not automatically be mapped to `mold_risk`.
 
-Place images into:
+## GrainSet Maize
+
+- Project: https://grainnet.github.io/GrainSet.html
+- Paper DOI: https://doi.org/10.1038/s41597-023-02660-8
+- Best use: future maize kernel quality expansion when labels clearly match the project classes
+
+## Final Test Data
+
+The final repo keeps lightweight test images in:
 
 ```text
-data/processed/train/good
-data/processed/train/broken
-data/processed/train/impurity
-data/processed/train/discolored
-data/processed/train/mold
-
-data/processed/val/<same classes>
-data/processed/test/<same classes>
+data/external_test/
 ```
 
-Then run:
+Run:
 
 ```bash
-python scripts/train_compare.py --data-dir data/processed --epochs 12
+python scripts/evaluate_test_images.py
+```
+
+The output is saved to:
+
+```text
+reports/external_test/
 ```

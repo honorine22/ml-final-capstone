@@ -1,0 +1,2 @@
+model,device,evaluation_mode,accuracy,macro_precision,macro_recall,macro_f1,test_samples,mistakes,model_path
+mobilenetv3_large_100,cpu,"raw argmax, single image pass, no threshold post-processing",0.9772727272727273,0.975,0.9722222222222222,0.9721362229102167,44,1,model_server/model_exports/maizeguard_public_best_model.pt

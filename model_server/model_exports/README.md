@@ -14,19 +14,8 @@ Run with:
 uvicorn pytorch_main:app --reload --port 8000
 ```
 
-The older TensorFlow/Keras API path can still use this folder for:
+The compatibility command below also works and loads the same PyTorch app:
 
-- `maizeguard_model.keras`
-- `class_names.json`
-
-Example Kaggle export:
-
-```python
-best_model.save("maizeguard_model.keras")
-
-import json
-with open("class_names.json", "w") as f:
-    json.dump(class_names, f)
+```bash
+uvicorn main:app --reload --port 8000
 ```
-
-The API expects `class_names.json` to use the same class order as the model output layer.
