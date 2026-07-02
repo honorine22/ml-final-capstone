@@ -1,0 +1,20 @@
+{
+  "source": "https://github.com/vision-cidis/CK-CNNLW",
+  "local_source_root": "data/raw/CK-CNNLW/dataset/synthesized",
+  "local_output_root": "data/synthetic_ckcnnlw_crops",
+  "total_crops": 21907,
+  "counts": {
+    "train/good": 14334,
+    "train/broken": 2746,
+    "train/impurity": 478,
+    "val/good": 3560,
+    "val/broken": 668,
+    "val/impurity": 121
+  },
+  "skipped": {
+    "train/too_small": 46,
+    "val/too_small": 11
+  },
+  "capstone_use": "Use as optional training augmentation only. Do not report synthetic crops as final real-world test accuracy.",
+  "important_note": "CK-CNNLW provides good, defective, and others labels. The project maps defective to broken and others to impurity. It does not provide a reliable mold_risk class."
+}

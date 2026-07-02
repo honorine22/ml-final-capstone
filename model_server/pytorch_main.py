@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
@@ -32,19 +33,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
-CLASS_NAMES = metadata.get("class_names") or metadata.get("classes")
-MODEL_NAME = metadata.get("model_name") or metadata.get("model_backbone", "mobilenetv3_large_100")
-IMG_SIZE = int(metadata.get("image_size") or metadata.get("input_image_size", 224))
+metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8")) if METADATA_PATH.exists() else {}
+checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)
+
+if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+    metadata = {**metadata, **checkpoint.get("config", {})}
+    state_dict = checkpoint["state_dict"]
+    CLASS_NAMES = checkpoint.get("classes") or metadata.get("class_names") or metadata.get("classes")
+    MODEL_NAME = checkpoint.get("model_name") or metadata.get("model_name") or metadata.get("model_backbone", "mobilenetv3_large_100")
+    IMG_SIZE = int(checkpoint.get("img_size") or metadata.get("image_size") or metadata.get("input_image_size", 224))
+else:
+    state_dict = checkpoint
+    CLASS_NAMES = metadata.get("class_names") or metadata.get("classes")
+    MODEL_NAME = metadata.get("model_name") or metadata.get("model_backbone", "mobilenetv3_large_100")
+    IMG_SIZE = int(metadata.get("image_size") or metadata.get("input_image_size", 224))
+
 MEAN = metadata.get("normalization_mean", [0.485, 0.456, 0.406])
 STD = metadata.get("normalization_std", [0.229, 0.224, 0.225])
 SAFETY_RULE = metadata.get("deployment_safety_rule", {})
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", SAFETY_RULE.get("needs_review_confidence_below", 0.65)))
 TOP2_MARGIN_THRESHOLD = float(os.getenv("TOP2_MARGIN_THRESHOLD", SAFETY_RULE.get("needs_review_top2_margin_below", 0.15)))
-RISK_PRIORITY_THRESHOLD = float(os.getenv("RISK_PRIORITY_THRESHOLD", metadata.get("risk_priority_threshold", 0.55)))
+MIXED_RISK_REVIEW_THRESHOLD = float(os.getenv("MIXED_RISK_REVIEW_THRESHOLD", SAFETY_RULE.get("mixed_risk_review_threshold", 0.55)))
 
 model = timm.create_model(MODEL_NAME, pretrained=False, num_classes=len(CLASS_NAMES))
-model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+model.load_state_dict(state_dict)
 model.to(DEVICE)
 model.eval()
 
@@ -55,27 +67,6 @@ valid_tfms = transforms.Compose(
         transforms.Normalize(mean=MEAN, std=STD),
     ]
 )
-
-
-def make_crops(image: Image.Image):
-    image = image.convert("RGB")
-    width, height = image.size
-    crops = [image]
-
-    center_size = int(min(width, height) * 0.75)
-    left = (width - center_size) // 2
-    top = (height - center_size) // 2
-    crops.append(image.crop((left, top, left + center_size, top + center_size)))
-
-    corner_size = int(min(width, height) * 0.60)
-    boxes = [
-        (0, 0, corner_size, corner_size),
-        (width - corner_size, 0, width, corner_size),
-        (0, height - corner_size, corner_size, height),
-        (width - corner_size, height - corner_size, width, height),
-    ]
-    crops.extend(image.crop(box) for box in boxes)
-    return crops
 
 
 def recommendation_for(label: str, needs_review: bool):
@@ -118,28 +109,44 @@ def recommendation_for(label: str, needs_review: bool):
     )
 
 
-def choose_conservative_label(probabilities: np.ndarray):
-    best_index = int(np.argmax(probabilities))
-    label = CLASS_NAMES[best_index]
-    confidence = float(probabilities[best_index])
-
-    # If a higher-risk class is clearly likely, prefer review over a false "good".
-    for risk_label in ["mold_risk", "impurity", "broken"]:
-        if risk_label in CLASS_NAMES:
-            index = CLASS_NAMES.index(risk_label)
-            if probabilities[index] >= RISK_PRIORITY_THRESHOLD:
-                return risk_label, float(probabilities[index])
-
-    return label, confidence
-
-
 def needs_review(probabilities: np.ndarray, confidence: float) -> bool:
     sorted_probs = np.sort(probabilities)[::-1]
     top2_margin = float(sorted_probs[0] - sorted_probs[1]) if len(sorted_probs) > 1 else 1.0
     return confidence < CONFIDENCE_THRESHOLD or top2_margin < TOP2_MARGIN_THRESHOLD
 
 
-def image_quality_review(image: Image.Image) -> tuple[bool, str | None]:
+def mixed_risk_reason(probabilities: np.ndarray, raw_label: str) -> Optional[str]:
+    if raw_label != "good":
+        return None
+
+    risk_scores = []
+    for risk_label in ["mold_risk", "impurity", "broken"]:
+        if risk_label in CLASS_NAMES:
+            index = CLASS_NAMES.index(risk_label)
+            risk_scores.append((risk_label, float(probabilities[index])))
+
+    if not risk_scores:
+        return None
+
+    risk_label, risk_score = max(risk_scores, key=lambda item: item[1])
+    if risk_score >= MIXED_RISK_REVIEW_THRESHOLD:
+        readable_label = risk_label.replace("_", " ")
+        return (
+            f"The top class is good, but {readable_label} also has "
+            f"{round(risk_score * 100, 1)}% probability. Ask for manual review before storage."
+        )
+
+    return None
+
+
+def image_quality_review(image: Image.Image) -> Tuple[bool, Optional[str]]:
+    width, height = image.size
+    if min(width, height) < 160:
+        return True, (
+            f"Image resolution is too small ({width}x{height}). "
+            "Upload a clear batch photo at least 160 pixels on each side."
+        )
+
     small = image.convert("RGB").resize((96, 96))
     array = np.asarray(small, dtype=np.float32)
     channel_std = float(array.reshape(-1, 3).std(axis=0).mean())
@@ -168,6 +175,7 @@ def health_check():
         "metadata_path": str(METADATA_PATH),
         "confidence_threshold": CONFIDENCE_THRESHOLD,
         "top2_margin_threshold": TOP2_MARGIN_THRESHOLD,
+        "mixed_risk_review_threshold": MIXED_RISK_REVIEW_THRESHOLD,
     }
 
 
@@ -176,32 +184,35 @@ async def predict(image: UploadFile = File(...)):
     image_bytes = await image.read()
     pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     quality_review, quality_reason = image_quality_review(pil_image)
-    crops = make_crops(pil_image)
 
-    crop_probs = []
     with torch.no_grad():
-        for crop in crops:
-            tensor = valid_tfms(crop).unsqueeze(0).to(DEVICE)
-            logits = model(tensor)
-            probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
-            crop_probs.append(probs)
+        tensor = valid_tfms(pil_image).unsqueeze(0).to(DEVICE)
+        logits = model(tensor)
+        avg_probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
 
-    avg_probs = np.mean(crop_probs, axis=0)
     raw_index = int(np.argmax(avg_probs))
     raw_label = CLASS_NAMES[raw_index]
-    label, confidence = choose_conservative_label(avg_probs)
-    review = quality_review or needs_review(avg_probs, confidence)
+    confidence = float(avg_probs[raw_index])
+    sorted_probs = np.sort(avg_probs)[::-1]
+    top2_margin = float(sorted_probs[0] - sorted_probs[1]) if len(sorted_probs) > 1 else 1.0
+    mixed_reason = mixed_risk_reason(avg_probs, raw_label)
+    review = quality_review or needs_review(avg_probs, confidence) or mixed_reason is not None
+    review_reason = quality_reason or mixed_reason
 
     return {
-        "label": label,
+        "label": raw_label,
         "raw_label": raw_label,
         "confidence": round(confidence, 4),
         "confidence_percent": round(confidence * 100, 2),
         "needs_review": review,
-        "review_reason": quality_reason,
+        "review_reason": review_reason,
+        "input_width": pil_image.width,
+        "input_height": pil_image.height,
+        "inference_view": "full_image",
+        "top2_margin": round(top2_margin, 4),
         "probabilities": {
             CLASS_NAMES[index]: round(float(avg_probs[index]), 4)
             for index in range(len(CLASS_NAMES))
         },
-        **recommendation_for(label, review),
+        **recommendation_for(raw_label, review),
     }

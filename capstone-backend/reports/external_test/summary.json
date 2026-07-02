@@ -1,0 +1,66 @@
+{
+  "ckcnn_sanity/broken": {
+    "samples": 9,
+    "prediction_counts": {
+      "broken": 8,
+      "mold_risk": 1
+    },
+    "needs_review": 1,
+    "final_decisions": 8,
+    "accuracy": 0.8889,
+    "final_decision_accuracy": 0.875
+  },
+  "ckcnn_sanity/good": {
+    "samples": 18,
+    "prediction_counts": {
+      "good": 18
+    },
+    "needs_review": 2,
+    "final_decisions": 16,
+    "accuracy": 1.0,
+    "final_decision_accuracy": 1.0
+  },
+  "ckcnn_sanity/impurity": {
+    "samples": 8,
+    "prediction_counts": {
+      "impurity": 8
+    },
+    "needs_review": 0,
+    "final_decisions": 8,
+    "accuracy": 1.0,
+    "final_decision_accuracy": 1.0
+  },
+  "ckcnn_sanity/mold_risk": {
+    "samples": 9,
+    "prediction_counts": {
+      "mold_risk": 9
+    },
+    "needs_review": 0,
+    "final_decisions": 9,
+    "accuracy": 1.0,
+    "final_decision_accuracy": 1.0
+  },
+  "efficientmaize/needs_manual_review": {
+    "samples": 12,
+    "prediction_counts": {
+      "broken": 5,
+      "impurity": 7
+    },
+    "needs_review": 11,
+    "final_decisions": 1,
+    "accuracy": null,
+    "final_decision_accuracy": null
+  },
+  "efficientmaize/good": {
+    "samples": 12,
+    "prediction_counts": {
+      "impurity": 8,
+      "broken": 3,
+      "good": 1
+    },
+    "needs_review": 12,
+    "final_decisions": 0,
+    "accuracy": 0.0833,
+    "final_decision_accuracy": null
+  }
+}

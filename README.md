@@ -1,217 +1,221 @@
-# MaizeGuard Rwanda - Initial Software Product Demo
+# MaizeGuard Rwanda - Final Product Demo
 
-MaizeGuard Rwanda is a capstone MVP for **A Deep Learning-Based Maize Grain Quality Assessment and Post-Harvest Action Recommendation System for Smallholder Farmers in Rwanda**.
+MaizeGuard Rwanda is a machine-learning web prototype for visible maize grain quality assessment and post-harvest action recommendation. A user uploads a maize image, the system sends it to a PyTorch model API, and the interface displays:
 
-The product lets a farmer, cooperative officer, or post-harvest support worker upload a maize image and receive:
-
-- visible quality class
-- confidence score
+- predicted visible quality class
+- confidence score and class probabilities
 - risk level
 - `needs_review` safety status
 - recommended post-harvest action
 
-The current demo uses a Next.js frontend, a Next.js API route, and a FastAPI PyTorch model server.
+The current model supports four classes: `good`, `broken`, `impurity`, and `mold_risk`.
 
-## GitHub Repository
-
-Add the final GitHub link after pushing:
+## Repository Link
 
 ```text
 https://github.com/honorine22/ml-final-capstone
 ```
 
+## Demo Video And Deployment
+
+Video demo:
+
+```text
+https://youtu.be/4_IMnTrr39o
+```
+
+Deployed app or local demo URL:
+
+```text
+Add deployed URL here after deployment.
+```
+
+For local demonstration:
+
+```text
+Frontend: http://localhost:3000
+Model API docs: http://localhost:8000/docs
+```
+
 ## Technology Stack
 
-- Frontend: Next.js 14, React 18, TypeScript, Tailwind CSS
+- Frontend: Next.js 14, React, TypeScript, Tailwind CSS
 - API proxy: Next.js route handler at `app/api/analyze/route.ts`
 - Model API: FastAPI at `model_server/pytorch_main.py`
 - ML framework: PyTorch, torchvision, timm
-- Model used for demo: `mobilenetv3_large_100`
-- Model export folder: `model_server/model_exports`
+- Model: MobileNetV3 Large with ImageNet transfer learning
+- Model artifact: `model_server/model_exports/maizeguard_public_best_model.pt`
 
-## Project Structure
+## Step-By-Step Setup
 
-```text
-app/                                  Next.js frontend and API route
-model_server/                         FastAPI model server
-notebooks/                            ML training notebooks
-scripts/                              Dataset preparation and training scripts
-docs/diagrams/                        Required report/UML/design diagrams
-docs/screenshots/                     App screenshots and ML visualizations
-model_server/model_exports/           API-ready PyTorch model checkpoint and metadata
-reports/models/                       Training metrics, manifests, audit files, and API example
-```
-
-## Setup
-
-Install frontend dependencies:
+1. Install frontend dependencies.
 
 ```bash
 npm install
 ```
 
-Create local environment file:
+2. Create the local environment file.
 
 ```bash
 cp .env.example .env.local
 ```
 
-Make sure `.env.local` contains:
+3. Confirm `.env.local` contains:
 
 ```text
 MODEL_API_URL=http://localhost:8000
 ```
 
-Install model API dependencies:
+4. Create and activate a Python environment.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+5. Install the model API dependencies.
+
+```bash
+pip install -r model_server/requirements-pytorch.txt
+```
+
+6. Run the FastAPI model server.
 
 ```bash
 cd model_server
-pip install -r requirements-pytorch.txt
+uvicorn main:app --reload --port 8000
 ```
 
-Run the FastAPI model server:
-
-```bash
-uvicorn pytorch_main:app --reload --port 8000
-```
-
-Run the frontend in another terminal:
+7. In a second terminal, run the frontend.
 
 ```bash
 npm run dev
 ```
 
-Open:
+8. Open the app.
 
 ```text
 http://localhost:3000
 ```
 
-Build check:
+## Related Project Files
+
+```text
+app/                                  Next.js frontend and API route
+model_server/                         FastAPI PyTorch model server
+model_server/model_exports/           API-ready model checkpoint and metadata
+notebooks/                            final ML training notebook
+scripts/                              testing and dataset utility scripts
+data/external_test/                   test images used for demo validation
+reports/models/                       model metrics and evaluation reports
+reports/external_test/                external test predictions and summary
+docs/screenshots/                     testing screenshots and ML result images
+docs/diagrams/                        project diagrams from the capstone design
+```
+
+Generated local folders such as `node_modules/`, `.next/`, `.venv/`, `data/raw/`, and `data/processed/` are not required inside the final zip because they can be recreated.
+
+## How The Product Works
+
+```text
+Browser upload UI
+  -> Next.js /api/analyze
+  -> FastAPI /predict
+  -> PyTorch MobileNetV3 model
+  -> JSON result
+  -> frontend result display
+```
+
+The API response includes `label`, `raw_label`, `confidence`, `probabilities`, `needs_review`, `risk`, `action`, and `recommendation`.
+
+If the model sees an unclear, tiny, or uncertain image, the frontend displays **Needs review** instead of forcing a risky final decision.
+
+## Core Functionalities Demonstrated
+
+- Upload a maize image.
+- Preview the full uploaded photo.
+- Send the image through the Next.js API route to the FastAPI model server.
+- Classify visible maize quality as `good`, `broken`, `impurity`, or `mold_risk`.
+- Display confidence and class probabilities.
+- Convert model output into a post-harvest action.
+- Mark unsafe or uncertain predictions as `Needs review`.
+- Test with multiple data values and image sources.
+
+## Testing Results
+
+Run all verification checks:
 
 ```bash
 npm run build
+python scripts/evaluate_test_images.py
+python scripts/check_capstone_ready.py
 ```
 
-## How The Demo Works
+Latest controlled public holdout result from `reports/models/model_metrics_summary.csv`:
 
-```text
-Next.js upload UI
-  -> app/api/analyze/route.ts
-  -> FastAPI /predict endpoint
-  -> PyTorch model checkpoint
-  -> JSON result returned to frontend
-```
+| Model | Test accuracy | Macro precision | Macro recall | Macro F1 | Test samples |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| MobileNetV3 Large | 0.9773 | 0.9750 | 0.9722 | 0.9721 | 44 |
 
-The frontend displays the model result. If the API returns `needs_review: true`, the app shows **Needs review** instead of presenting a risky final decision.
+External/domain-shift testing from `reports/external_test/summary.json`:
 
-Expected API response shape:
+| Test group | Samples | Raw accuracy | Needs review | Final decision accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| CK-CNN good | 18 | 1.0000 | 2 | 1.0000 |
+| CK-CNN broken | 9 | 0.8889 | 1 | 0.8750 |
+| CK-CNN impurity | 8 | 1.0000 | 0 | 1.0000 |
+| CK-CNN mold risk | 9 | 1.0000 | 0 | 1.0000 |
+| EfficientMaize good | 12 | 0.0833 | 12 | Not applicable |
+| EfficientMaize bad unresolved | 12 | Not applicable | 11 | Not applicable |
 
-```json
-{
-  "label": "good",
-  "raw_label": "good",
-  "confidence": 0.988,
-  "confidence_percent": 98.8,
-  "needs_review": false,
-  "probabilities": {
-    "good": 0.988,
-    "broken": 0.004,
-    "impurity": 0.002,
-    "mold_risk": 0.006
-  },
-  "risk": "Low",
-  "action": "Store safely or prepare for sale",
-  "recommendation": "The maize appears clean. Store in a dry place and monitor normally."
-}
-```
+The EfficientMaize results are intentionally treated as cross-domain evidence, not final model quality. They show that images from a different dataset style can confuse the model, so the app uses the `Needs review` safety layer.
 
-## Product Features Demonstrated
+Screenshots and visual evidence:
 
-- Maize image upload and preview
-- Model-backed classification through API
-- Risk-aware result display
-- Confidence visualization
-- `needs_review` safety behavior
-- Post-harvest recommendation
-- Recent assessment panel
-- Dataset and ML readiness section
-- API route suitable for Swagger/Postman testing
+- `docs/screenshots/00_app_interface_home.png`
+- `docs/screenshots/01_app_interface_home.png`
+- `docs/screenshots/01_class_distribution_by_split.png`
+- `docs/screenshots/03_sample_images_by_class.png`
+- `docs/screenshots/06_training_validation_loss.png`
+- `docs/screenshots/08_confusion_matrix_raw_argmax.png`
+- `docs/screenshots/10_per_class_metrics.png`
+- `docs/screenshots/11_mistakes_raw_argmax.png`
 
-## ML Notebook
+## Performance On Different Environments
 
-Main notebook:
+- Kaggle GPU issue handled: the notebook detects unsupported CUDA devices such as P100 with newer PyTorch builds and falls back to CPU instead of crashing.
+- Local Mac test: FastAPI loads the PyTorch model on CPU and returns predictions through `/predict`.
+- Web build test: `npm run build` passes and produces the optimized Next.js production build.
+- API integration test: posting an image through `/api/analyze` returns the live model result expected by the frontend.
 
-[notebooks/maizeguard_public_datasets_pytorch_training.ipynb](notebooks/maizeguard_public_datasets_pytorch_training.ipynb)
+## Analysis
 
-The notebook includes:
+The project achieved the main objective of building a working software prototype that connects image upload, model inference, confidence display, risk mapping, and post-harvest recommendation.
 
-- public dataset discovery/download logic
-- strict maize-only data mapping
-- dataset audit to avoid non-maize leakage
-- data visualizations and class distributions
-- image preprocessing and augmentation
-- MobileNetV3 model architecture and training setup
-- optimizer, learning rate, loss function, and fine-tuning plan
-- accuracy, precision, recall, F1-score, confusion matrix, and error analysis
-- API response example
-- export files for deployment
+The controlled CK-CNN holdout results are strong, with 97.73% accuracy and 97.21% macro F1. This shows that the exported model, preprocessing, class order, and API integration work correctly for the public training distribution.
 
-## Current Model Result
+The project partially missed the broader real-world objective because external images from different sources still show domain shift. Some EfficientMaize images are predicted as `impurity` or `broken` even when the folder label is broad `good` or `bad`. The system handles this by marking low-quality or uncertain external samples as `Needs review`, which is safer than claiming final food-safety certification.
 
-From `reports/models/model_comparison_summary.csv`:
+## Discussion
 
-| Model | Best validation macro F1 | Test accuracy | Test precision macro | Test recall macro | Test F1 macro | Size |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| MobileNetV3 Large | 0.94375 | 0.97727 | 0.97500 | 0.97222 | 0.97214 | 16.25 MB |
+The important milestone is that the capstone moved from a mockup to an end-to-end executable product. The frontend no longer gives fake default results; it calls a real model API and shows model evidence.
 
-Model architecture summary:
+The results are useful because they reveal both success and limitation. The model performs well on controlled public kernel images, but real farmer phone images require more local data. This is an important finding because agricultural AI systems must be tested with the same image style expected in the field.
 
-[model_server/model_exports/maizeguard_model_metadata.json](model_server/model_exports/maizeguard_model_metadata.json)
+The `Needs review` behavior is also important. It makes the product more responsible for smallholder use because it avoids telling a farmer to store or sell a batch when the model is uncertain.
 
-## Designs, Diagrams, And Screenshots
+## Recommendations And Future Work
 
-Required diagrams are in:
+- Collect local Rwanda maize photos from markets, cooperatives, and post-harvest handling locations.
+- Label local samples with support from agronomy or cooperative officers.
+- Retrain or fine-tune the model with real phone images, not only public kernel datasets.
+- Keep `mold_risk` as a visible-risk category and avoid claiming laboratory aflatoxin detection.
+- Add a small database for prediction history and supervisor/cooperative feedback.
+- Deploy the frontend online and host the FastAPI model server on Render, Railway, Hugging Face Spaces, or a university server.
+- Add offline-friendly guidance for farmers with low connectivity.
 
-[docs/diagrams](docs/diagrams)
+## Submission Notes
 
-Files included:
+Attempt 1: submit the GitHub repository link, deployed/local demo link, and video demo link.
 
-- `01_research_model.png`
-- `02_system_architecture.png`
-- `03_use_case_diagram.png`
-- `04_class_diagram.png`
-- `05_erd.png`
-- `06_sequence_diagram.png`
-- `07_gantt_chart.png`
-
-ML visualizations and screenshots are in:
-
-[docs/screenshots](docs/screenshots)
-
-These include class distribution, dataset source by class, sample images, training/validation loss, validation accuracy/F1, model comparison, per-class metrics, confusion matrix, and confidence distribution.
-
-## Deployment Plan
-
-Initial demo deployment:
-
-- Frontend: Vercel, Netlify, or local Next.js server
-- Model API: FastAPI server running on a local machine or cloud VM
-- Model artifact: PyTorch `.pt` checkpoint in `model_server/model_exports`
-- API communication: frontend calls `/api/analyze`, which proxies to `MODEL_API_URL`
-
-Later production deployment:
-
-- Host Next.js frontend on Vercel
-- Host FastAPI model server on Render, Railway, Hugging Face Spaces, or a university server
-- Store prediction records in PostgreSQL or SQLite
-- Store uploaded images in controlled cloud storage if required
-- Add authentication for cooperative officers/admins
-
-More detail:
-
-[docs/deployment-plan.md](docs/deployment-plan.md)
-
-Video Demo
-
-Link: https://youtu.be/4_IMnTrr39o
+Attempt 2: submit a zip file of this repository after removing generated folders such as `node_modules`, `.next`, `.venv`, `data/raw`, and `data/processed`.

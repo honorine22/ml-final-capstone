@@ -1,0 +1,170 @@
+[
+  {
+    "file": "good/good_01.jpg",
+    "source_file": "good_data1000.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "76f5d4185479d0a0e4b554d0ebd009b50e7d1847c9c04f1920fa362b9cfa84eb"
+  },
+  {
+    "file": "good/good_02.jpg",
+    "source_file": "good_data1083.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "abed3a932d588ea65ab0c1d633075c569ec17bdbcc6cea03d613dfee646bd4ee"
+  },
+  {
+    "file": "good/good_03.jpg",
+    "source_file": "good_data1165.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "7aa180b64b2889498938571465b8d918ba91ab4b7810a035851b347c89a8e63a"
+  },
+  {
+    "file": "good/good_04.jpg",
+    "source_file": "good_data1246.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "c54ba7e63aecb0b5130c1ed7d5383fbb185e5498dffb8335839bcd7c99e71f61"
+  },
+  {
+    "file": "good/good_05.jpg",
+    "source_file": "good_data1328.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "feda337425bb06367feb4d65b953f7d143bf7a8021edcaaacf334f4c2854e5a8"
+  },
+  {
+    "file": "good/good_06.jpg",
+    "source_file": "good_data140.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "737fb75a4864d79b0adfeaac6dc114ff5680ee15714820d881b826371ae2beb4"
+  },
+  {
+    "file": "good/good_07.jpg",
+    "source_file": "good_data1492.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "a7a3019f5c0efa002920121f5a056dbb6ce03718d86cfa5bc39a90fd516beea5"
+  },
+  {
+    "file": "good/good_08.jpg",
+    "source_file": "good_data1574.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "11351f0cbc37943e8f652b95e4347619f7856448d297593a594ccc930fbe4203"
+  },
+  {
+    "file": "good/good_09.jpg",
+    "source_file": "good_data1656.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "41e1dd9a5a8024fcafcc0357467709a503f60d3dc173b89460d5300e4b4e10b0"
+  },
+  {
+    "file": "good/good_10.jpg",
+    "source_file": "good_data1737.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "a55315d458c2271f8b6f653b7e6fd3245c9e4497d3bd5c50ffa88c89a029ca5a"
+  },
+  {
+    "file": "good/good_11.jpg",
+    "source_file": "good_data1819.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "a24d2671a7d166c0a7ad34837ecfa065958ad6a823f9795e28e53fa0c43a8dc2"
+  },
+  {
+    "file": "good/good_12.jpg",
+    "source_file": "good_data1900.jpg",
+    "source_label": "good",
+    "expected_app_label": "good",
+    "sha256": "e01c267587123057030453e09f4931f78aa132f8f47745d41564ffdcef7db7e8"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_01.jpg",
+    "source_file": "bad_data1000.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "75a344c16f951ffe8789a0cb0948af068db18f61590f7b760ab00d7a29ccb130"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_02.jpg",
+    "source_file": "bad_data1083.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "f06d626d2d9fc3765e1d6c4e6f3256b48ce8b9e539922e48bc2c24299ebc1907"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_03.jpg",
+    "source_file": "bad_data1165.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "40fb043a3c02716656a4d33c7f6d18acab0e63752039d1a2aceb6ce4bfec9db3"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_04.jpg",
+    "source_file": "bad_data1246.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "2d3e64262fa9377345c5c4c01a75c5fe0e41a7371af756cf3f59777a1cd71712"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_05.jpg",
+    "source_file": "bad_data1328.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "7ed557a9037b86e48d4a9c6ae5e7a77e1948a1557ef3325949c6dd6389048306"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_06.jpg",
+    "source_file": "bad_data140.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "0e58b1d9811396b44c44deb676969cb837704e5c107ca4b58f6b302741a6d0ea"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_07.jpg",
+    "source_file": "bad_data1492.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "92cd1524d28dcd5d44f3105aec1aa8a4082436504435b27d89aae2b1257abe87"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_08.jpg",
+    "source_file": "bad_data1574.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "0eadc79ea0f6e3c544cbc592827ba9f649b016a076f17f47e49fc78bdba6f126"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_09.jpg",
+    "source_file": "bad_data1656.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "4a859f3d02f8f47365ec6bdaf962931d7549e1dc9a57e48fd5435c089b572d5c"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_10.jpg",
+    "source_file": "bad_data1737.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "f083841a6b65ea2ff9eb1b8e529f8d6836bdc7c7c5f8110b9829a47195c364c5"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_11.jpg",
+    "source_file": "bad_data1819.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "884c10248f15d5d89e1c5c4769d7167f9b651404f84371d737f863c57746eca6"
+  },
+  {
+    "file": "bad_unresolved/bad_unresolved_12.jpg",
+    "source_file": "bad_data1900.jpg",
+    "source_label": "bad",
+    "expected_app_label": "needs_manual_review",
+    "sha256": "7155e322e1e16102c147242e01fd37d3311838dd24cc9b19b6af1f2a61958bb0"
+  }
+]

@@ -1,0 +1,13 @@
+### FastAPI health check
+GET http://localhost:8000/
+
+### Next.js analyze endpoint
+POST http://localhost:3000/api/analyze
+Content-Type: multipart/form-data; boundary=maizeguard
+
+--maizeguard
+Content-Disposition: form-data; name="image"; filename="sample-maize.jpg"
+Content-Type: image/jpeg
+
+< ./public/maize-quality-hero.png
+--maizeguard--

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: maizeguard-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh
+    healthCheckPath: /
+    envVars:
+      - key: CORS_ORIGINS
+        value: http://localhost:3000
+      - key: CONFIDENCE_THRESHOLD
+        value: "0.65"
+      - key: TOP2_MARGIN_THRESHOLD
+        value: "0.15"
