@@ -12,12 +12,13 @@
 ## Attempt 2
 
 - [ ] Zip file created from the same repository submitted in Attempt 1.
-- [ ] Zip excludes generated folders:
+- [x] Cleaned submission copy excludes generated folders:
   - `node_modules/`
   - `.next/`
   - `.venv/`
   - `data/raw/`
   - `data/processed/`
+  - `capstone-backend/data/synthetic_ckcnnlw_crops/`
 
 ## Required Evidence
 
@@ -72,4 +73,3 @@ python scripts/check_capstone_ready.py
 7. Show `Needs review` for uncertain or external image.
 8. Show notebook metrics, confusion matrix, and external test summary.
 9. Explain deployment plan: backend first, frontend second.
-

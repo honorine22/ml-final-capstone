@@ -40,53 +40,54 @@ Model API docs: http://localhost:8000/docs
 ## Technology Stack
 
 - Frontend: Next.js 14, React, TypeScript, Tailwind CSS
-- API proxy: Next.js route handler at `app/api/analyze/route.ts`
-- Model API: FastAPI at `model_server/pytorch_main.py`
+- API proxy: Next.js route handler at `capstone-frontend/app/api/analyze/route.ts`
+- Model API: FastAPI at `capstone-backend/model_server/pytorch_main.py`
 - ML framework: PyTorch, torchvision, timm
 - Model: MobileNetV3 Large with ImageNet transfer learning
-- Model artifact: `model_server/model_exports/maizeguard_public_best_model.pt`
+- Model artifact: `capstone-backend/model_server/model_exports/maizeguard_public_best_model.pt`
 
 ## Step-By-Step Setup
 
-1. Install frontend dependencies.
+1. Create and activate a Python environment for the backend.
 
 ```bash
+cd capstone-backend
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+2. Install the model API dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the FastAPI model server.
+
+```bash
+./start.sh
+```
+
+4. In a second terminal, install frontend dependencies.
+
+```bash
+cd capstone-frontend
 npm install
 ```
 
-2. Create the local environment file.
+5. Create the local frontend environment file.
 
 ```bash
 cp .env.example .env.local
 ```
 
-3. Confirm `.env.local` contains:
+6. Confirm `capstone-frontend/.env.local` contains:
 
 ```text
 MODEL_API_URL=http://localhost:8000
 ```
 
-4. Create and activate a Python environment.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-5. Install the model API dependencies.
-
-```bash
-pip install -r model_server/requirements-pytorch.txt
-```
-
-6. Run the FastAPI model server.
-
-```bash
-cd model_server
-uvicorn main:app --reload --port 8000
-```
-
-7. In a second terminal, run the frontend.
+7. Run the frontend.
 
 ```bash
 npm run dev
@@ -101,19 +102,22 @@ http://localhost:3000
 ## Related Project Files
 
 ```text
-app/                                  Next.js frontend and API route
-model_server/                         FastAPI PyTorch model server
-model_server/model_exports/           API-ready model checkpoint and metadata
-notebooks/                            final ML training notebook
-scripts/                              testing and dataset utility scripts
-data/external_test/                   test images used for demo validation
-reports/models/                       model metrics and evaluation reports
-reports/external_test/                external test predictions and summary
-docs/screenshots/                     testing screenshots and ML result images
-docs/diagrams/                        project diagrams from the capstone design
+capstone-frontend/                    Next.js frontend and API route
+capstone-backend/                     FastAPI PyTorch model server
+capstone-backend/model_server/        API code and model loading logic
+capstone-backend/model_server/model_exports/
+                                      API-ready model checkpoint and metadata
+capstone-backend/notebooks/           final ML training notebooks
+capstone-backend/scripts/             testing and dataset utility scripts
+capstone-backend/data/external_test/  test images used for demo validation
+capstone-backend/reports/models/      model metrics and evaluation reports
+capstone-backend/reports/external_test/
+                                      external test predictions and summary
+capstone-backend/docs/screenshots/    testing screenshots and ML result images
+capstone-backend/docs/diagrams/       project diagrams from the capstone design
 ```
 
-Generated local folders such as `node_modules/`, `.next/`, `.venv/`, `data/raw/`, and `data/processed/` are not required inside the final zip because they can be recreated.
+Generated local folders such as `node_modules/`, `.next/`, `.venv/`, `data/raw/`, and `data/processed/` are not required inside the final zip because they can be recreated. Raw training datasets were removed from the submission copy to keep the repository focused on the final product, model artifact, testing evidence, and deployment files.
 
 ## How The Product Works
 
@@ -146,18 +150,22 @@ If the model sees an unclear, tiny, or uncertain image, the frontend displays **
 Run all verification checks:
 
 ```bash
+cd capstone-frontend
 npm run build
+
+cd ../capstone-backend
+source .venv/bin/activate
 python scripts/evaluate_test_images.py
 python scripts/check_capstone_ready.py
 ```
 
-Latest controlled public holdout result from `reports/models/model_metrics_summary.csv`:
+Latest controlled public holdout result from `capstone-backend/reports/models/model_metrics_summary.csv`:
 
 | Model | Test accuracy | Macro precision | Macro recall | Macro F1 | Test samples |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | MobileNetV3 Large | 0.9773 | 0.9750 | 0.9722 | 0.9721 | 44 |
 
-External/domain-shift testing from `reports/external_test/summary.json`:
+External/domain-shift testing from `capstone-backend/reports/external_test/summary.json`:
 
 | Test group | Samples | Raw accuracy | Needs review | Final decision accuracy |
 | --- | ---: | ---: | ---: | ---: |
@@ -172,14 +180,14 @@ The EfficientMaize results are intentionally treated as cross-domain evidence, n
 
 Screenshots and visual evidence:
 
-- `docs/screenshots/00_app_interface_home.png`
-- `docs/screenshots/01_app_interface_home.png`
-- `docs/screenshots/01_class_distribution_by_split.png`
-- `docs/screenshots/03_sample_images_by_class.png`
-- `docs/screenshots/06_training_validation_loss.png`
-- `docs/screenshots/08_confusion_matrix_raw_argmax.png`
-- `docs/screenshots/10_per_class_metrics.png`
-- `docs/screenshots/11_mistakes_raw_argmax.png`
+- `capstone-backend/docs/screenshots/00_app_interface_home.png`
+- `capstone-backend/docs/screenshots/01_app_interface_home.png`
+- `capstone-backend/docs/screenshots/01_class_distribution_by_split.png`
+- `capstone-backend/docs/screenshots/03_sample_images_by_class.png`
+- `capstone-backend/docs/screenshots/06_training_validation_loss.png`
+- `capstone-backend/docs/screenshots/08_confusion_matrix_raw_argmax.png`
+- `capstone-backend/docs/screenshots/10_per_class_metrics.png`
+- `capstone-backend/docs/screenshots/11_mistakes_raw_argmax.png`
 
 ## Performance On Different Environments
 
@@ -218,4 +226,4 @@ The `Needs review` behavior is also important. It makes the product more respons
 
 Attempt 1: submit the GitHub repository link, deployed/local demo link, and video demo link.
 
-Attempt 2: submit a zip file of this repository after removing generated folders such as `node_modules`, `.next`, `.venv`, `data/raw`, and `data/processed`.
+Attempt 2: submit a zip file of this repository. Generated folders such as `node_modules`, `.next`, `.venv`, `data/raw`, and `data/processed` have been excluded from this cleaned submission copy.

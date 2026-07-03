@@ -1,2 +1,0 @@
-model,device_used,selected_phase,best_val_f1_macro,test_accuracy,test_precision_macro,test_recall_macro,test_f1_macro,test_samples,mistakes,model_size_mb,best_model_path
-mobilenetv3_large_100,cpu,finetune,0.9721362229102167,0.9772727272727273,0.975,0.9722222222222222,0.9721362229102167,44,1,16.0,model_server/model_exports/maizeguard_public_best_model.pt

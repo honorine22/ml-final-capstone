@@ -1,6 +1,11 @@
 .next
 node_modules
 .venv
+capstone-frontend/.next
+capstone-frontend/node_modules
+capstone-frontend/.env.local
+capstone-backend/.venv
+capstone-backend/model_server/.venv
 out
 dist
 .env
@@ -11,6 +16,9 @@ __pycache__
 *.pyc
 data/raw
 data/processed
+capstone-backend/data/raw
+capstone-backend/data/processed
+capstone-backend/data/synthetic_ckcnnlw_crops
 reports/models/*.keras
 reports/models/*.h5
 reports/models/*.onnx
